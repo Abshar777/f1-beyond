@@ -25,7 +25,7 @@ export default function FeatureStats2() {
       <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <Reveal
           stagger
-          className="feature-stats-2__wrapper flex flex-wrap items-center justify-between gap-5 xl:flex-nowrap xl:gap-0"
+          className="feature-stats-2__wrapper flex flex-wrap grid-cols-2 items-center justify-between md:gap-5 gap-x-1 gap-y-6 xl:flex-nowrap xl:gap-0"
         >
           {STATS.map((stat, index) => (
             <div
@@ -36,7 +36,7 @@ export default function FeatureStats2() {
                   : ""
               }`}
             >
-              <div className="feature-stats-2__icon flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-primary text-white transition-all duration-300 hover:-translate-y-[3px] hover:bg-secondary lg:h-[60px] lg:w-[60px] [&>svg]:h-[25px] [&>svg]:w-[25px] lg:[&>svg]:h-[30px] lg:[&>svg]:w-[30px]">
+              <div className="feature-stats-2__icon flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-full bg-white text-secondery transition-all duration-300 hover:-translate-y-[3px] hover:bg-secondary lg:h-[60px] lg:w-[60px] [&>svg]:h-[25px] [&>svg]:w-[25px] lg:[&>svg]:h-[30px] lg:[&>svg]:w-[30px]">
                 <stat.Icon strokeWidth={1.6} aria-hidden />
               </div>
               <div className="feature-stats-2__content flex flex-col">

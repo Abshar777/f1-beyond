@@ -206,10 +206,10 @@ export default function Footer() {
                     />
                   </svg>
                   <a
-                    href="mailto:support@eduflow.com"
+                    href="mailto:support@beyondpipsacademy.com"
                     className="transition-colors duration-300 hover:text-white"
                   >
-                    support@eduflow.com
+                    support@beyondpipsacademy.com
                   </a>
                 </div>
               </div>

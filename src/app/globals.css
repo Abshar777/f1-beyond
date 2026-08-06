@@ -106,13 +106,25 @@ body {
   }
 }
 
-/* ── Testimonial carousel ── Swiper's default bullets are blue; recolour to
-   the gold accent and give the pagination room below the slides. */
-.testimonial-carousel .swiper {
+/* ── Carousels ── Swiper's default bullets are blue; recolour to the gold
+   accent and give the pagination room below the slides. Shared by the
+   testimonial carousel and the mobile mentor carousel. */
+.testimonial-carousel .swiper,
+.mentor-carousel .swiper {
   padding-bottom: 52px;
 }
 
-.testimonial-carousel .swiper-pagination-bullet {
+/* slides are stretched so every card in a row matches the tallest */
+.mentor-carousel .swiper-slide {
+  height: auto;
+}
+
+.mentor-carousel .swiper-slide > * {
+  height: 100%;
+}
+
+.testimonial-carousel .swiper-pagination-bullet,
+.mentor-carousel .swiper-pagination-bullet {
   width: 9px;
   height: 9px;
   background: var(--color-primary);
@@ -120,7 +132,8 @@ body {
   transition: opacity 0.3s, width 0.3s, background-color 0.3s;
 }
 
-.testimonial-carousel .swiper-pagination-bullet-active {
+.testimonial-carousel .swiper-pagination-bullet-active,
+.mentor-carousel .swiper-pagination-bullet-active {
   width: 26px;
   border-radius: 999px;
   background: var(--color-secondary);

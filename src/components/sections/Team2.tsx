@@ -1,7 +1,19 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Swiper as SwiperCore } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import SectionHeading from "@/components/ui/SectionHeading";
 import ThemeButton from "@/components/ui/ThemeButton";
 import Reveal from "@/components/ui/Reveal";
+
+// Swiper 14 registers optional modules on the shared core class.
+// eslint-disable-next-line react-hooks/rules-of-hooks
+SwiperCore.use([Autoplay, Pagination]);
 
 type SocialLink = {
   label: string;
@@ -65,11 +77,88 @@ const TEAM_MEMBERS: TeamMember[] = [
   },
 ];
 
+function MentorCard({ member }: { member: TeamMember }) {
+  return (
+        <div
+          className="group h-full rounded-[10px] border border-border bg-white px-5 pt-5 pb-7 text-center transition-colors duration-300 hover:bg-primary"
+        >
+          <div className="flex items-start justify-between">
+            <span className="inline-flex items-center gap-1 rounded bg-secondary px-[8.1px] py-[7px] text-sm font-semibold text-white">
+              4.5
+              <svg
+                width="14"
+                height="13"
+                viewBox="0 0 14 13"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.55 12.6667L3.63333 7.98333L0 4.83333L4.8 4.41667L6.66667 0L8.53333 4.41667L13.3333 4.83333L9.7 7.98333L10.7833 12.6667L6.66667 10.1833L2.55 12.6667Z"
+                  fill="white"
+                />
+              </svg>
+            </span>
+            <div className="flex gap-[15px]">
+              {SOCIAL_LINKS.map((social) => (
+                <a key={social.label} href="#" aria-label={social.label}>
+                  <svg
+                    width={social.width}
+                    height={social.height}
+                    viewBox={social.viewBox}
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d={social.path}
+                      className="fill-primary opacity-[0.14] transition-[fill,opacity] duration-300 group-hover:fill-white [a:hover_&]:opacity-100"
+                    />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-[72px] mb-[47px] flex justify-center">
+            <img
+              src={member.image}
+              alt={member.name}
+              className="h-[140px] w-[140px] rounded-full bg-[#f1f1f1] object-contain transition-transform duration-500 group-hover:scale-110"
+            />
+          </div>
+
+          <div>
+            <h3 className="mb-[7px]">
+              <Link
+                href={member.href}
+                className="text-[18px] leading-[120%] font-medium tracking-[-0.03em] text-primary no-underline transition-colors duration-300 group-hover:text-white md:text-[20px]"
+              >
+                {member.name}
+              </Link>
+            </h3>
+            <p className="text-sm font-medium text-text capitalize transition-colors duration-300 group-hover:text-white/80">
+              {member.title}
+            </p>
+          </div>
+        </div>
+  );
+}
+
 /**
  * "team2 area" from e-learning.html — instructor/team member card grid.
  * Ratings are static "4.5" for every card in the source (no per-member data).
  */
 export default function Team2() {
+  // Carousel below lg, the original 4-up grid above it.
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setIsDesktop(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
   return (
     <section id="mentors" className="bg-bg py-20 min-[1400px]:py-[90px] min-[1920px]:py-[130px]">
       <div className="mx-auto w-full max-w-[1320px] px-4 sm:px-6 lg:px-8">
@@ -89,72 +178,33 @@ export default function Team2() {
           </ThemeButton>
         </div>
 
-        <Reveal stagger className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-          {TEAM_MEMBERS.map((member) => (
-            <div
-              key={member.name}
-              className="group h-full rounded-[10px] border border-border bg-white px-5 pt-5 pb-7 text-center transition-colors duration-300 hover:bg-primary"
+        {isDesktop ? (
+          <Reveal stagger className="grid grid-cols-2 gap-5 lg:grid-cols-4">
+            {TEAM_MEMBERS.map((member) => (
+              <MentorCard key={member.name} member={member} />
+            ))}
+          </Reveal>
+        ) : (
+          <Reveal className="mentor-carousel">
+            <Swiper
+              loop
+              autoplay={{ delay: 4200, disableOnInteraction: false, pauseOnMouseEnter: true }}
+              speed={700}
+              spaceBetween={16}
+              grabCursor
+              pagination={{ clickable: true }}
+              slidesPerView={1.15}
+              breakpoints={{ 480: { slidesPerView: 1.6 }, 640: { slidesPerView: 2.2 } }}
             >
-              <div className="flex items-start justify-between">
-                <span className="inline-flex items-center gap-1 rounded bg-secondary px-[8.1px] py-[7px] text-sm font-semibold text-white">
-                  4.5
-                  <svg
-                    width="14"
-                    height="13"
-                    viewBox="0 0 14 13"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M2.55 12.6667L3.63333 7.98333L0 4.83333L4.8 4.41667L6.66667 0L8.53333 4.41667L13.3333 4.83333L9.7 7.98333L10.7833 12.6667L6.66667 10.1833L2.55 12.6667Z"
-                      fill="white"
-                    />
-                  </svg>
-                </span>
-                <div className="flex gap-[15px]">
-                  {SOCIAL_LINKS.map((social) => (
-                    <a key={social.label} href="#" aria-label={social.label}>
-                      <svg
-                        width={social.width}
-                        height={social.height}
-                        viewBox={social.viewBox}
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d={social.path}
-                          className="fill-primary opacity-[0.14] transition-[fill,opacity] duration-300 group-hover:fill-white [a:hover_&]:opacity-100"
-                        />
-                      </svg>
-                    </a>
-                  ))}
-                </div>
-              </div>
+              {TEAM_MEMBERS.map((member) => (
+                <SwiperSlide key={member.name} className="h-auto">
+                  <MentorCard member={member} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </Reveal>
+        )}
 
-              <div className="mt-[72px] mb-[47px] flex justify-center">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="h-[140px] w-[140px] rounded-full bg-[#f1f1f1] object-contain transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-
-              <div>
-                <h3 className="mb-[7px]">
-                  <Link
-                    href={member.href}
-                    className="text-[18px] leading-[120%] font-medium tracking-[-0.03em] text-primary no-underline transition-colors duration-300 group-hover:text-white md:text-[20px]"
-                  >
-                    {member.name}
-                  </Link>
-                </h3>
-                <p className="text-sm font-medium text-text capitalize transition-colors duration-300 group-hover:text-white/80">
-                  {member.title}
-                </p>
-              </div>
-            </div>
-          ))}
-        </Reveal>
       </div>
     </section>
   );
