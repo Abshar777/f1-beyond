@@ -1,26 +1,201 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Black / white / gold, carried over from the trading-hub seminar palette:
+   the former dark green becomes near-black and the orange becomes gold, with
+   #e6c14e as the lighter gold used for hovers and highlights. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* Zinc-toned blacks rather than the warm near-black: cooler and less flat
+     against the gold. primary = zinc-900, ink = zinc-800 for raised surfaces. */
+  --color-primary: #18181b;
+  --color-secondary: #d4af37;
+  --color-gold: #d4af37;
+  --color-gold-light: #e6c14e;
+  --color-ink: #27272a;
+  --color-ink-soft: #3f3f46;
+  --color-ink-deep: #09090b;
+  --color-border: #18181b24;
+  --color-border-2: #ffffff24;
+  --color-bg: #f8f5f2;
+  --color-bg-2: #f8f5f2;
+  --color-yellow: #ffdc30;
+  --color-purple: #971f97;
+  --color-orange: #d4af37;
+  --color-light-orange: #e6c14e;
+  --color-indigo: #9965e9;
+  --color-red: #ff383c;
+  --color-blue: #7a4eff;
+  --color-green: #07875a;
+  --color-tan: #c08552;
+  --color-black: #0e0f11;
+  --color-black-2: #525355;
+  --color-black-3: #0c081f;
+  --color-text: #555555;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-mona: var(--font-mona-sans), sans-serif;
+  --font-playfair: var(--font-playfair-display), serif;
+  --font-dm: var(--font-dm-sans), sans-serif;
+  --font-instrument: var(--font-instrument-serif), serif;
+  --font-forum: var(--font-forum), serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-mona);
+}
+
+/* ── Spotlight sweep — ported from the trading-hub seminar page ──
+   A diagonal sheen crosses the element, then rests. The keyframes hold the
+   off-screen position for the first 55% of the cycle so the sweep reads as an
+   occasional glint rather than a continuous shimmer. */
+.spotlight-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.spotlight-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  animation: spotlight-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes spotlight-sweep {
+  0%,
+  55%,
+  100% {
+    transform: translateX(-130%);
+  }
+  80% {
+    transform: translateX(130%);
+  }
+}
+
+/* Gold sheen for dark surfaces; white would blow out against them. */
+.spotlight-btn-gold::after {
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(212, 175, 55, 0.55) 50%,
+    transparent 70%
+  );
+}
+
+/* Dark sheen for gold/white surfaces, where a white sweep is invisible. */
+.spotlight-btn-dark::after {
+  background: linear-gradient(
+    110deg,
+    transparent 30%,
+    rgba(15, 14, 12, 0.16) 50%,
+    transparent 70%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotlight-btn::after {
+    animation: none;
+  }
+}
+
+/* ── Hero ticker tape ── the strip is rendered twice, so translating by half
+   its width loops seamlessly. */
+@keyframes ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-ticker {
+  animation: ticker-scroll 42s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ticker {
+    animation: none;
+  }
+}
+
+/* Odometer's default theme, inlined rather than imported from the package:
+   its stylesheet carries IE7 star-hacks (`*zoom: 1`) that Lightning CSS
+   rejects outright. Behaviour is unchanged — those hacks are inert in every
+   browser this project targets — and the animation logic still comes from the
+   npm package. Font/line-height inherit so the counters keep the surrounding
+   heading's type instead of the theme's hardcoded Helvetica. */
+.odometer {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  font-family: inherit;
+  line-height: inherit;
+}
+
+.odometer .odometer-digit {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.odometer .odometer-digit .odometer-digit-spacer {
+  display: inline-block;
+  vertical-align: middle;
+  visibility: hidden;
+}
+
+.odometer .odometer-digit .odometer-digit-inner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: block;
+  overflow: hidden;
+  text-align: left;
+}
+
+.odometer .odometer-digit .odometer-ribbon {
+  display: block;
+}
+
+.odometer .odometer-digit .odometer-ribbon-inner {
+  display: block;
+  backface-visibility: hidden;
+}
+
+.odometer .odometer-digit .odometer-value {
+  display: block;
+  text-align: center;
+  transform: translateZ(0);
+}
+
+.odometer .odometer-digit .odometer-value.odometer-last-value {
+  position: absolute;
+}
+
+.odometer.odometer-animating-up .odometer-ribbon-inner {
+  transition: transform 2s;
+}
+
+.odometer.odometer-animating-up.odometer-animating .odometer-ribbon-inner {
+  transform: translateY(-100%);
+}
+
+.odometer.odometer-animating-down .odometer-ribbon-inner {
+  transform: translateY(-100%);
+}
+
+.odometer.odometer-animating-down.odometer-animating .odometer-ribbon-inner {
+  transform: translateY(0);
+  transition: transform 2s;
 }
