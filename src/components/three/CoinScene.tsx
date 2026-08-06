@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment, Float, Html, Lightformer } from "@react-three/drei";
+import { Environment, Float, Html, Lightformer, useTexture } from "@react-three/drei";
 import type { Group } from "three";
 import CoinFallback from "./CoinFallback";
 
@@ -20,6 +20,8 @@ const METALS = [
     body: "#d4af37",
     rim: "#e6c14e",
     boss: "#f0d484",
+    emboss: "#0d0a01",
+    edgeTint: "#6b5410",
     roughness: 0.19,
   },
   {
@@ -30,6 +32,8 @@ const METALS = [
     body: "#c9ced6",
     rim: "#e4e8ee",
     boss: "#f2f5f8",
+    emboss: "#1c1f23",
+    edgeTint: "#6a6f76",
     roughness: 0.16,
   },
   {
@@ -40,6 +44,8 @@ const METALS = [
     body: "#b9bec4",
     rim: "#d7dbe0",
     boss: "#eceef1",
+    emboss: "#1a1d21",
+    edgeTint: "#63676c",
     roughness: 0.13,
   },
 ] as const;
@@ -88,6 +94,9 @@ function Coin({
   labelOffset?: number;
 }) {
   const ref = useRef<Group>(null);
+  // useTexture caches by URL, so every coin shares one decode.
+  const logo = useTexture("/assets/imgs/logo/coin-face-mask.png");
+  const edge = useTexture("/assets/imgs/logo/coin-edge-mask.png");
 
   useFrame((_, delta) => {
     if (ref.current) ref.current.rotation.y += delta * spin;
@@ -150,6 +159,28 @@ function Coin({
               />
             </mesh>
 
+            {/* Inscription milled into the edge. A separate open-ended
+                cylinder a hair outside the disc, rather than a second material
+                on the disc itself — the side, top and bottom are one geometry
+                group each, so layering a masked overlay is the only way to get
+                dark text over the metal without replacing the whole side. */}
+            <mesh>
+              <cylinderGeometry args={[1.004, 1.004, 0.168, 96, 1, true]} />
+              <meshStandardMaterial
+                alphaMap={edge}
+                transparent
+                // Softer than the face strike on purpose: a mid-tone of the
+                // metal, still reflective, and held under full opacity so the
+                // lettering settles into the band instead of reading as a
+                // black decal laid over it.
+                opacity={0.72}
+                color={metal.edgeTint}
+                metalness={0.55}
+                roughness={0.5}
+                depthWrite={false}
+              />
+            </mesh>
+
             {/* raised rim, both faces, so the disc reads as a struck coin */}
             {[0.089, -0.089].map((y) => (
               <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
@@ -162,14 +193,29 @@ function Coin({
               </mesh>
             ))}
 
-            {/* inner boss, gives the face something to catch light on */}
-            {[0.095, -0.095].map((y) => (
-              <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[0.3, 0.055, 18, 48]} />
+            {/* Struck face: brand mark plus "BEYONDPIPS ACADEMY" / "TRADING
+                DESK" curved around the rim, baked into one mask.
+                It has to be a purpose-built white-on-black image rather than
+                the gold source art — three.js samples alphaMap's GREEN
+                channel, and the artwork's green is only 174/255, which
+                silently capped the strike at ~68% opacity. */}
+            {[
+              { y: 0.0955, rx: -Math.PI / 2 },
+              { y: -0.0955, rx: Math.PI / 2 },
+            ].map(({ y, rx }) => (
+              <mesh key={y} position={[0, y, 0]} rotation={[rx, 0, 0]}>
+                <planeGeometry args={[1.92, 1.92]} />
                 <meshStandardMaterial
-                  color={metal.boss}
-                  metalness={1}
-                  roughness={metal.roughness + 0.13}
+                  alphaMap={logo}
+                  transparent
+                  color={metal.emboss}
+                  // Matte, not metallic. At metalness 0.45 the mark mirrored
+                  // the bright lightformers and washed back out to roughly the
+                  // tone of the face; a near-dielectric surface absorbs that
+                  // light instead and holds its contrast against the gold.
+                  metalness={0.05}
+                  roughness={0.85}
+                  depthWrite={false}
                 />
               </mesh>
             ))}
@@ -369,7 +415,9 @@ export default function CoinScene() {
         <Lightformer intensity={1.6} position={[0, -5, 2]} scale={[9, 4, 1]} color="#d4af37" />
       </Environment>
 
-      <Cluster />
+      <Suspense fallback={null}>
+        <Cluster />
+      </Suspense>
     </Canvas>
   );
 }

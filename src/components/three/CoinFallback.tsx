@@ -27,7 +27,7 @@ export default function CoinFallback({ pulsing = false }: { pulsing?: boolean })
           </radialGradient>
         </defs>
 
-        <ellipse cx="200" cy="330" rx="120" ry="20" fill="#18181b" opacity="0.14" />
+        <ellipse cx="200" cy="330" rx="120" ry="20" fill="#09090b" opacity="0.14" />
 
         {/* back-left */}
         <g transform="translate(96 232) rotate(-14)">

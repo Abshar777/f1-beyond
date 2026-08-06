@@ -68,7 +68,7 @@ export default function Hero2() {
         className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05]"
         style={{
           backgroundImage:
-            "linear-gradient(to right, #18181b 1px, transparent 1px), linear-gradient(to bottom, #18181b 1px, transparent 1px)",
+            "linear-gradient(to right, #09090b 1px, transparent 1px), linear-gradient(to bottom, #09090b 1px, transparent 1px)",
           backgroundSize: "64px 64px",
           maskImage:
             "radial-gradient(ellipse 75% 60% at 50% 0%, #000 35%, transparent 100%)",
@@ -95,11 +95,11 @@ export default function Hero2() {
             </Reveal>
 
             <TextReveal delay={HERO_DELAY } className="mb-6">
-              <h1 className="font-mona text-[38px] leading-[1.04] font-medium tracking-[-0.03em] text-primary max-md:text-center md:text-[46px] lg:text-[52px] xl:text-[62px]">
+              <h1 className="gold-accents gold-accents-deep font-mona text-[38px] leading-[1.04] font-medium tracking-[-0.03em] text-primary max-md:text-center md:text-[46px] lg:text-[52px] xl:text-[62px]">
                 Trade crypto &amp; markets with real{" "}
-                <span className="font-playfair font-normal text-secondary italic">
+                <em className="font-playfair font-normal italic">
                   strategy
-                </span>
+                </em>
               </h1>
             </TextReveal>
 

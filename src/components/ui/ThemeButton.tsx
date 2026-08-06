@@ -39,6 +39,23 @@ const VARIANT_CLASSES: Record<Variant, string> = {
 };
 
 /**
+ * Where the brushed-gold gradient lands per variant — on the button body when
+ * the fill itself is gold, otherwise on the small icon box, which is the only
+ * gold surface on those. `outline` and `dark` only turn gold on hover, so they
+ * get the gradient on hover to match.
+ *
+ * These are plain class hooks resolved in globals.css, not Tailwind variants:
+ * `[&_.tb-icon]:gold-surface` silently does nothing, because a variant can only
+ * wrap a generated utility, never an arbitrary custom class name.
+ */
+const VARIANT_GOLD: Record<Variant, string> = {
+  outline: "tb-gold-icon tb-gold-hover",
+  secondary: "gold-surface hover:[background-image:none]",
+  dark: "tb-gold-hover",
+  white: "tb-gold-icon",
+};
+
+/**
  * Sheen colour per variant: gold reads on the dark fill, dark reads on the
  * gold/white fills. A white sweep on a gold button is invisible.
  */
@@ -59,7 +76,7 @@ export default function ThemeButton({
   onClick,
   type = "button",
 }: ThemeButtonProps) {
-  const classes = `group inline-flex w-max items-center justify-between gap-5 rounded-md p-[3px] pl-5 transition-all duration-300 ${VARIANT_CLASSES[variant]} ${VARIANT_SHEEN[variant]} ${className}`;
+  const classes = `group inline-flex w-max items-center justify-between gap-5 rounded-md p-[3px] pl-5 transition-all duration-300 ${VARIANT_CLASSES[variant]} ${VARIANT_GOLD[variant]} ${VARIANT_SHEEN[variant]} ${className}`;
 
   const content = (
     <>

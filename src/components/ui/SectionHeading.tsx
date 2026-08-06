@@ -48,7 +48,7 @@ export default function SectionHeading({
       </Reveal>
       <TextReveal delay={0.08}>
         <h2
-          className={`font-mona text-[32px] font-medium leading-[110%] tracking-[-0.03em] sm:text-[36px] lg:text-[40px] xl:text-[48px] [&_em]:font-playfair [&_em]:italic [&_em]:font-normal [&_em]:tracking-[-0.04em] [&_em]:text-secondary ${
+          className={`gold-accents font-mona text-[32px] font-medium leading-[110%] tracking-[-0.03em] sm:text-[36px] lg:text-[40px] xl:text-[48px] [&_em]:font-playfair [&_em]:italic [&_em]:font-normal [&_em]:tracking-[-0.04em] ${
             dark ? "text-white" : "text-primary"
           }`}
         >

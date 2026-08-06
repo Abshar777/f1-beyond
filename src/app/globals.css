@@ -5,15 +5,16 @@
    #e6c14e as the lighter gold used for hovers and highlights. */
 @theme inline {
   /* Zinc-toned blacks rather than the warm near-black: cooler and less flat
-     against the gold. primary = zinc-900, ink = zinc-800 for raised surfaces. */
-  --color-primary: #18181b;
+     against the gold. primary = zinc-950 (every dark surface + heading text),
+     with ink/ink-soft as the lifted greys above it. */
+  --color-primary: #09090b;
   --color-secondary: #d4af37;
   --color-gold: #d4af37;
   --color-gold-light: #e6c14e;
-  --color-ink: #27272a;
-  --color-ink-soft: #3f3f46;
+  --color-ink: #18181b;
+  --color-ink-soft: #27272a;
   --color-ink-deep: #09090b;
-  --color-border: #18181b24;
+  --color-border: #09090b24;
   --color-border-2: #ffffff24;
   --color-bg: #f8f5f2;
   --color-bg-2: #f8f5f2;
@@ -102,6 +103,94 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .spotlight-btn::after {
+    animation: none;
+  }
+}
+
+/* ── Gold shimmer text ── ported verbatim from the trading-hub's
+   `.anniversary-gold`: a gradient clipped to the glyphs, drifting so the gold
+   catches light.
+
+   `-webkit-text-fill-color` is set alongside `color` on purpose — it wins over
+   any inherited colour rule regardless of specificity, so utility classes on
+   the parent (e.g. the heading's `[&_em]:text-secondary`) can't quietly repaint
+   the glyphs solid and kill the gradient. */
+.gold-shine,
+/* Every heading accent (the <em> inside a SectionHeading / hero headline) gets
+   the same treatment, so gold text reads identically across the site. */
+.gold-accents em,
+/* SplitText moves each letter into its own element, so a gradient clipped to
+   only the wrapper leaves the letters transparent-filled with nothing behind
+   them — i.e. invisible. Re-declaring on the generated descendants gives every
+   letter its own gradient; they share the animation timing, so the word still
+   shimmers as one. */
+.gold-shine div,
+.gold-accents em div {
+  background: linear-gradient(90deg, #b8901f 0%, #f6e27a 50%, #b8901f 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: gold-shine 3.2s linear infinite;
+}
+
+/* Deeper gold for accents sitting on the cream hero. The default gradient is
+   tuned for dark panels — its pale #f6e27a midpoint washes out against a light
+   background, so the light stop is pulled down to keep the word legible. */
+.gold-accents-deep em,
+.gold-accents-deep em div {
+  background: linear-gradient(90deg, #7d5f12 0%, #c9a227 50%, #7d5f12 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+@keyframes gold-shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-shine,
+  .gold-shine div,
+  .gold-accents em,
+  .gold-accents em div {
+    animation: none;
+  }
+}
+
+/* ── Brushed gold surface ── the same drifting gradient as the shimmer text,
+   but painted on the element rather than clipped to glyphs. Gives gold fills
+   (buttons, icon boxes, badges) depth instead of one flat swatch.
+
+   `background-image` rather than `background`, so Tailwind's `bg-*` colour
+   utility still supplies a fallback underneath — a solid gold if the gradient
+   is ever unsupported, rather than a transparent hole. */
+.gold-surface,
+/* the small icon box is the only gold surface on the outline/white variants */
+.tb-gold-icon .tb-icon,
+/* variants that only turn gold on hover */
+.tb-gold-hover:hover {
+  /* Pitched a step darker than the shimmer text: buttons carry white labels,
+     and the pale #f6e27a highlight left too little contrast against them. */
+  background-image: linear-gradient(
+    100deg,
+    #a8811a 0%,
+    #d4af37 28%,
+    #f6e27a 50%,
+    #d4af37 72%,
+    #a8811a 100%
+  );
+  background-size: 220% auto;
+  animation: gold-shine 4.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gold-surface,
+  .tb-gold-icon .tb-icon,
+  .tb-gold-hover:hover {
     animation: none;
   }
 }

@@ -3,7 +3,7 @@ import SectionHeading from "@/components/ui/SectionHeading";
 import ThemeButton from "@/components/ui/ThemeButton";
 
 /**
- * Programme CTA — dark gold-accented panel, image free.
+ * Programme CTA — dark gold-accented panel on the light page. Image free.
  *
  * Uses <SectionHeading dark> rather than hand-rolled type: an earlier pass
  * copied the seminar page's own scale (11px label, 26/32px heading, -0.02em)
