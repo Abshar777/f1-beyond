@@ -109,6 +109,6 @@ export const NAV_LINKS: NavItem[] = [
       { label: "Become a mentor", href: "#contact" },
     ],
   },
-  { label: "Notes", href: "#notes" },
+ 
   { label: "Contact", href: "#contact" },
 ];

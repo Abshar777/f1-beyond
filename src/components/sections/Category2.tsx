@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import SectionHeading from "@/components/ui/SectionHeading";
 import ThemeButton from "@/components/ui/ThemeButton";
@@ -246,7 +245,7 @@ export default function Category2() {
                         Live weekly sessions
                       </span>
                     </div>
-                  </Link>
+                  </a>
                 ))}
               </Reveal>
             </div>

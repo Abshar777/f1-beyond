@@ -106,6 +106,27 @@ body {
   }
 }
 
+/* ── Testimonial carousel ── Swiper's default bullets are blue; recolour to
+   the gold accent and give the pagination room below the slides. */
+.testimonial-carousel .swiper {
+  padding-bottom: 52px;
+}
+
+.testimonial-carousel .swiper-pagination-bullet {
+  width: 9px;
+  height: 9px;
+  background: var(--color-primary);
+  opacity: 0.22;
+  transition: opacity 0.3s, width 0.3s, background-color 0.3s;
+}
+
+.testimonial-carousel .swiper-pagination-bullet-active {
+  width: 26px;
+  border-radius: 999px;
+  background: var(--color-secondary);
+  opacity: 1;
+}
+
 /* ── Hero ticker tape ── the strip is rendered twice, so translating by half
    its width loops seamlessly. */
 @keyframes ticker-scroll {

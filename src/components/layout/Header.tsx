@@ -197,7 +197,7 @@ export default function Header() {
                 </ul>
               </nav>
 
-              <a
+              {/* <a
                 href="#"
                 aria-label="Account"
                 className={`flex items-center border-r pr-5 transition-colors duration-300 ${isScrolled ? "border-white/15 text-white" : "border-primary/15 text-primary"}`}
@@ -232,7 +232,7 @@ export default function Header() {
                 <span className="absolute -top-1.5 -right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-secondary text-[10px] leading-none font-semibold text-white">
                   2
                 </span>
-              </a>
+              </a> */}
 
               <ThemeButton href="/" variant="secondary">
                 Enroll now

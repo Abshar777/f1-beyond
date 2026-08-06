@@ -1,6 +1,18 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { Swiper as SwiperCore } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
+
+// Swiper 14 dropped the per-instance `modules` prop; optional modules are
+// registered once on the shared core class instead.
+// eslint-disable-next-line react-hooks/rules-of-hooks
+SwiperCore.use([Autoplay, Pagination]);
 
 type Testimonial = {
   id: string;
@@ -251,11 +263,22 @@ export default function Testimonial2() {
           }
         />
 
-        <Reveal stagger className="flex flex-col gap-[30px]">
-          {testimonials.map((t) => (
+        <Reveal className="testimonial-carousel">
+          <Swiper
+            loop
+            autoplay={{ delay: 5200, disableOnInteraction: false, pauseOnMouseEnter: true }}
+            speed={800}
+            slidesPerView={1}
+            spaceBetween={24}
+            grabCursor
+            pagination={{ clickable: true }}
+            // Keyboard/drag stay on; Lenis owns the wheel, so mousewheel is
+            // deliberately NOT enabled or the carousel would fight page scroll.
+          >
+            {testimonials.map((t) => (
+              <SwiperSlide key={t.id}>
             <div
-              key={t.id}
-              className="group flex flex-col overflow-hidden rounded-[10px] border border-border p-[9px] lg:flex-row"
+              className="group flex h-full flex-col overflow-hidden rounded-[10px] border border-border bg-white p-[9px] lg:flex-row"
             >
               {/* thumb */}
               <div className="relative max-h-[380px] w-full overflow-hidden rounded-[6px] lg:w-1/3 xl:w-[28.3%]">
@@ -310,7 +333,9 @@ export default function Testimonial2() {
                 </div>
               </div>
             </div>
-          ))}
+              </SwiperSlide>
+            ))}
+          </Swiper>
         </Reveal>
       </div>
     </section>
