@@ -14,7 +14,7 @@ type Article = {
 const articles: Article[] = [
   {
     category: "Risk",
-    image: "/assets/imgs/home2/blog/blog-thumb2_1.webp",
+    image: "/assets/imgs/stock/trading-charts-1.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_1.webp",
     author: "Marcus Reed",
     date: "May 15, 2026",
@@ -22,7 +22,7 @@ const articles: Article[] = [
   },
   {
     category: "Crypto",
-    image: "/assets/imgs/home2/blog/blog-thumb2_2.webp",
+    image: "/assets/imgs/stock/trading-screens.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_2.webp",
     author: "Olivia Chen",
     date: "May 25, 2026",
@@ -30,7 +30,7 @@ const articles: Article[] = [
   },
   {
     category: "Psychology",
-    image: "/assets/imgs/home2/blog/blog-thumb2_3.webp",
+    image: "/assets/imgs/stock/seminar-stage.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_3.webp",
     author: "Daniel Roberts",
     date: "Jun 28, 2026",

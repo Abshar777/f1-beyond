@@ -32,7 +32,7 @@ const COURSE_PACKAGES: CoursePackageItem[] = [
   {
     id: "starter-trader-pack",
     href: "/course-details-classic-v2",
-    thumbnail: "/assets/imgs/home2/courses/courses-thumb1_1.webp",
+    thumbnail: "/assets/imgs/stock/trading-desk.jpg",
     thumbnailAlt: "Course 1",
     rating: "4.9/5",
     author: "Laura Anderson",
@@ -46,7 +46,7 @@ const COURSE_PACKAGES: CoursePackageItem[] = [
   {
     id: "pro-trader-accelerator",
     href: "/course-details-classic-v2",
-    thumbnail: "/assets/imgs/home2/courses/courses-thumb1_2.webp",
+    thumbnail: "/assets/imgs/stock/seminar-class.jpg",
     thumbnailAlt: "Course 1",
     offerBadge: "50% off",
     rating: "4.9/5",
@@ -61,7 +61,7 @@ const COURSE_PACKAGES: CoursePackageItem[] = [
   {
     id: "institutional-strategy-pack",
     href: "/course-details-classic-v2",
-    thumbnail: "/assets/imgs/home2/courses/courses-thumb1_3.webp",
+    thumbnail: "/assets/imgs/stock/trading-chart-2.jpg",
     thumbnailAlt: "Course 1",
     rating: "4.9/5",
     author: "Jacob Jones",

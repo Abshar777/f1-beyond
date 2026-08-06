@@ -19,7 +19,7 @@ type Course = {
 const COURSES: Course[] = [
   {
     id: "forex-foundations",
-    image: "/assets/imgs/home2/courses/top-courses-thumb1_1.webp",
+    image: "/assets/imgs/stock/trading-charts-1.jpg",
     rating: 4,
     instructor: "Marcus Reed",
     title: "Forex foundations bootcamp",
@@ -31,7 +31,7 @@ const COURSES: Course[] = [
   },
   {
     id: "crypto-essentials",
-    image: "/assets/imgs/home2/courses/top-courses-thumb1_2.webp",
+    image: "/assets/imgs/stock/trading-laptop.jpg",
     rating: 3,
     instructor: "Olivia Chen",
     title: "Crypto trading essentials",
@@ -41,7 +41,7 @@ const COURSES: Course[] = [
   },
   {
     id: "technical-analysis",
-    image: "/assets/imgs/home2/courses/top-courses-thumb1_3.webp",
+    image: "/assets/imgs/stock/trading-screens.jpg",
     rating: 4.5,
     instructor: "Sophia Martinez",
     title: "Technical analysis mastery",
@@ -51,7 +51,7 @@ const COURSES: Course[] = [
   },
   {
     id: "risk-and-psychology",
-    image: "/assets/imgs/home2/courses/top-courses-thumb1_4.webp",
+    image: "/assets/imgs/stock/trading-chart-2.jpg",
     rating: 5,
     instructor: "Daniel Roberts",
     title: "Risk & trading psychology",

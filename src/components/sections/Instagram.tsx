@@ -24,15 +24,15 @@ type InstagramSlide = {
 // 9 slides in the source markup, built from 6 unique tiles (1–3 repeat once
 // more at the end to give the loop enough slides to fill slidesPerView: 6).
 const slides: InstagramSlide[] = [
-  { id: 1, image: "/assets/imgs/home2/instagram/instagram-thumb2_1.webp", href: "#" },
-  { id: 2, image: "/assets/imgs/home2/instagram/instagram-thumb2_2.webp", href: "#" },
-  { id: 3, image: "/assets/imgs/home2/instagram/instagram-thumb2_3.webp", href: "#" },
-  { id: 4, image: "/assets/imgs/home2/instagram/instagram-thumb2_4.webp", href: "#" },
-  { id: 5, image: "/assets/imgs/home2/instagram/instagram-thumb2_5.webp", href: "#" },
-  { id: 6, image: "/assets/imgs/home2/instagram/instagram-thumb2_6.webp", href: "#" },
-  { id: 7, image: "/assets/imgs/home2/instagram/instagram-thumb2_1.webp", href: "#" },
-  { id: 8, image: "/assets/imgs/home2/instagram/instagram-thumb2_2.webp", href: "#" },
-  { id: 9, image: "/assets/imgs/home2/instagram/instagram-thumb2_3.webp", href: "#" },
+  { id: 1, image: "/assets/imgs/stock/sq-1.jpg", href: "#" },
+  { id: 2, image: "/assets/imgs/stock/sq-2.jpg", href: "#" },
+  { id: 3, image: "/assets/imgs/stock/sq-3.jpg", href: "#" },
+  { id: 4, image: "/assets/imgs/stock/sq-4.jpg", href: "#" },
+  { id: 5, image: "/assets/imgs/stock/sq-5.jpg", href: "#" },
+  { id: 6, image: "/assets/imgs/stock/sq-6.jpg", href: "#" },
+  { id: 7, image: "/assets/imgs/stock/sq-1.jpg", href: "#" },
+  { id: 8, image: "/assets/imgs/stock/sq-2.jpg", href: "#" },
+  { id: 9, image: "/assets/imgs/stock/sq-3.jpg", href: "#" },
 ];
 
 /** Instagram glyph shown on hover over each tile (source: instagram area SVG). */

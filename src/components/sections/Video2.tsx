@@ -99,7 +99,7 @@ export default function Video2() {
           <div className="flex w-full justify-center lg:w-auto lg:flex-1">
             <div className="group relative w-full max-w-[500px] max-h-[400px] overflow-hidden rounded-[6px] shadow-[0_30px_60px_rgba(0,0,0,0.4)] lg:max-w-[630px]">
               <img
-                src="/assets/imgs/home2/video/video-thumb.webp"
+                src="/assets/imgs/stock/seminar-stage.jpg"
                 alt="Video Thumbnail"
                 className="block h-auto w-full transition-transform duration-500 ease-in-out group-hover:scale-105"
               />
