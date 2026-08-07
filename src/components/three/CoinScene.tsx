@@ -20,7 +20,6 @@ const METALS = [
     body: "#d4af37",
     rim: "#e6c14e",
     boss: "#f0d484",
-    emboss: "#0d0a01",
     edgeTint: "#6b5410",
     roughness: 0.19,
   },
@@ -32,7 +31,6 @@ const METALS = [
     body: "#c9ced6",
     rim: "#e4e8ee",
     boss: "#f2f5f8",
-    emboss: "#1c1f23",
     edgeTint: "#6a6f76",
     roughness: 0.16,
   },
@@ -44,7 +42,6 @@ const METALS = [
     body: "#b9bec4",
     rim: "#d7dbe0",
     boss: "#eceef1",
-    emboss: "#1a1d21",
     edgeTint: "#63676c",
     roughness: 0.13,
   },
@@ -95,7 +92,11 @@ function Coin({
 }) {
   const ref = useRef<Group>(null);
   // useTexture caches by URL, so every coin shares one decode.
-  const logo = useTexture("/assets/imgs/logo/coin-face-mask.png");
+  // Height field + proof-finish map for the struck face. NOT colour data,
+  // so both must stay in linear space — TextureLoader's NoColorSpace
+  // default is correct here and must not be switched to sRGB.
+  const relief = useTexture("/assets/imgs/logo/coin-face-height.png");
+  const finish = useTexture("/assets/imgs/logo/coin-face-rough.png");
   const edge = useTexture("/assets/imgs/logo/coin-edge-mask.png");
 
   useFrame((_, delta) => {
@@ -193,32 +194,56 @@ function Coin({
               </mesh>
             ))}
 
-            {/* Struck face: brand mark plus "BEYONDPIPS ACADEMY" / "TRADING
-                DESK" curved around the rim, baked into one mask.
-                It has to be a purpose-built white-on-black image rather than
-                the gold source art — three.js samples alphaMap's GREEN
-                channel, and the artwork's green is only 174/255, which
-                silently capped the strike at ~68% opacity. */}
+            {/* Struck face — genuinely displaced geometry, not a decal.
+                Three things together make this read as a die strike rather
+                than a watermark laid on the metal:
+
+                1. It IS the face. A dense polar grid (ringGeometry gives a
+                   real ring x radial grid, unlike circleGeometry's triangle
+                   fan, which has no interior vertices to move) at the coin's
+                   own radius, so there is no seam and no floating overlay.
+                2. displacementMap physically moves those vertices, so the mark
+                   has height, breaks the silhouette and occludes itself.
+                3. bumpMap off the same height field. Displacement alone does
+                   not recompute normals, so without this the raised mark would
+                   be lit exactly like the flat field and the walls would stay
+                   invisible — the geometry would be there but unreadable.
+
+                Colouring it dark (the previous approach) is what made it look
+                printed on. Here it is the same metal as the disc and the form
+                is described purely by light, with the roughnessMap frosting
+                the field so the polished device stands off it. */}
             {[
-              { y: 0.0955, rx: -Math.PI / 2 },
-              { y: -0.0955, rx: Math.PI / 2 },
+              { y: 0.0855, rx: -Math.PI / 2 },
+              { y: -0.0855, rx: Math.PI / 2 },
             ].map(({ y, rx }) => (
               <mesh key={y} position={[0, y, 0]} rotation={[rx, 0, 0]}>
-                <planeGeometry args={[1.92, 1.92]} />
+                {/* Outer radius matches the disc exactly so this replaces the
+                    cap rather than sitting on it. RingGeometry's UVs are
+                    planar across the bounding square, which is what the square
+                    face artwork expects. */}
+                <ringGeometry args={[0.006, 1, 220, 96]} />
                 <meshStandardMaterial
-                  alphaMap={logo}
-                  transparent
-                  color={metal.emboss}
-                  // Matte, not metallic. At metalness 0.45 the mark mirrored
-                  // the bright lightformers and washed back out to roughly the
-                  // tone of the face; a near-dielectric surface absorbs that
-                  // light instead and holds its contrast against the gold.
-                  metalness={0.05}
-                  roughness={0.85}
-                  depthWrite={false}
+                  displacementMap={relief}
+                  displacementScale={0.03}
+                  bumpMap={relief}
+                  bumpScale={0.55}
+                  roughnessMap={finish}
+                  color={metal.body}
+                  metalness={1}
+                  // Base must stay at the disc's own roughness. The finish map
+                  // only ever multiplies *down*, so this is the field, and it
+                  // has to match the metal exactly — raising it to frost the
+                  // field turned the whole face near-black, because polished
+                  // metal here reflects a handful of small lightformers and
+                  // roughening it just averages them into the dark surround.
+                  // The device is left to fall to a sharper mirror instead,
+                  // which brightens rather than dims.
+                  roughness={metal.roughness + + 0.22}
                 />
               </mesh>
             ))}
+
           </group>
         </group>
       </group>
@@ -413,6 +438,28 @@ export default function CoinScene() {
         <Lightformer intensity={3.2} position={[6, 4, 4]} scale={[9, 9, 1]} color="#ffffff" />
         <Lightformer intensity={2.4} position={[-6, 2, 2]} scale={[7, 7, 1]} color="#f7e6b0" />
         <Lightformer intensity={1.6} position={[0, -5, 2]} scale={[9, 4, 1]} color="#d4af37" />
+        {/* Key light for the faces. The three panels above all sit off to the
+            side, which lights the coin *edges* beautifully and leaves the flat
+            caps mirroring empty space — a metalness:1 surface reflects what is
+            in front of it, and there was nothing there, so the faces rendered
+            black. That was survivable while the mark was a diffuse dark decal
+            painted on top, but the strike is now the same metal as the disc
+            and is described purely by reflection, so it needs a source. A ring
+            rather than a flat panel: it sweeps a curved highlight across the
+            relief as the coin turns, instead of washing the face flat. */}
+        <Lightformer
+          form="ring"
+          intensity={3.4}
+          position={[1.4, 1.8, 6.4]}
+          scale={[7, 7, 1]}
+          color="#fff4d8"
+        />
+        <Lightformer
+          intensity={0.9}
+          position={[-2.4, -1.2, 6]}
+          scale={[9, 9, 1]}
+          color="#f0dca4"
+        />
       </Environment>
 
       <Suspense fallback={null}>
