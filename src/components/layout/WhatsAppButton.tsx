@@ -1,16 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-/**
- * PLACEHOLDER — replace with the real desk number: full international format,
- * digits only, no "+" and no spaces. wa.me fails silently on a bad number, so
- * this will look like it works and go nowhere until it is changed.
- */
-const WHATSAPP_NUMBER = "971500000000";
-
-const PREFILLED_MESSAGE =
-  "Hi Beyondpips — I'd like to know more about the trading programme.";
+import { whatsappHref } from "@/lib/contact";
 
 /** How long the label stays out, and how long it stays away. */
 const LABEL_VISIBLE_MS = 3400;
@@ -75,13 +66,9 @@ export default function WhatsAppButton() {
 
   const open = cycleOpen || hovered;
 
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
-    PREFILLED_MESSAGE,
-  )}`;
-
   return (
     <a
-      href={href}
+      href={whatsappHref()}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Talk to our team on WhatsApp"
