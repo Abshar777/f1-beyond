@@ -40,10 +40,60 @@ const forum = Forum({
   subsets: ["latin"],
 });
 
+/**
+ * Update this to the real production origin before launch. `metadataBase` is
+ * what turns the relative OG/icon paths into the absolute URLs that social
+ * scrapers require — without it Next warns and falls back to localhost, and the
+ * share card silently resolves to nothing.
+ */
+const SITE_URL = "https://beyondpips.com";
+
+const DESCRIPTION =
+  "Learn to trade forex, crypto, indices and metals with active traders. Live mentor sessions, real chart reading and the risk framework that keeps an account alive. Every package is free while the desk is opening up.";
+
 export const metadata: Metadata = {
-  title: "Beyondpips Trading Academy — Learn to trade crypto, forex & commodities",
-  description:
-    "Live market sessions, chart reading and practical risk management taught by active traders. Real charts, real strategies, real practice.",
+  metadataBase: new URL(SITE_URL),
+  // `%s` is filled by each route's own `title`; the homepage overrides with
+  // `absolute` via `default`, so it does not read "Home | Beyondpips…".
+  title: {
+    default:
+      "Beyondpips Trading Academy — learn forex, crypto & commodities in Dubai",
+    template: "%s | Beyondpips Trading Academy",
+  },
+  description: DESCRIPTION,
+  applicationName: "Beyondpips Trading Academy",
+  keywords: [
+    "trading academy Dubai",
+    "forex course",
+    "crypto trading course",
+    "pip calculator",
+    "position sizing",
+    "risk management",
+    "trading mentor",
+  ],
+  authors: [{ name: "Beyondpips Trading Academy" }],
+  creator: "Beyondpips Trading Academy",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Beyondpips Trading Academy",
+    title:
+      "Beyondpips Trading Academy — learn forex, crypto & commodities in Dubai",
+    description: DESCRIPTION,
+    url: "/",
+    locale: "en_GB",
+    // src/app/opengraph-image.png is picked up automatically and gets the
+    // fingerprinted URL; listing it by hand here would bypass that.
+  },
+  twitter: {
+    card: "summary_large_image",
+    title:
+      "Beyondpips Trading Academy — learn forex, crypto & commodities in Dubai",
+    description: DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
+  // icon.png / apple-icon.png in src/app are wired up by the file convention,
+  // so `icons` is deliberately not declared.
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

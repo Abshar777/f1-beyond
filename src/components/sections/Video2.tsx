@@ -120,7 +120,8 @@ export default function Video2() {
           <div className="flex w-full flex-col justify-center rounded-[6px] bg-white/5 px-[10px] py-3 text-left lg:h-[400px] lg:w-[266px] lg:pt-10 lg:pr-10 lg:pb-[43px] lg:pl-[45px]">
             <div className="border-b border-white/10 pb-[10px] lg:pb-[60px]">
               <h3 className={`mb-3 lg:mb-[18px] ${NUMBER_CLASSES}`}>
-                4.8/<span className="text-secondary">5</span>
+                <Odometer value={4.8} format="(d).d" />/
+                <span className="text-secondary">5</span>
               </h3>
               <p className={LABEL_CLASSES}>Mentor rating</p>
             </div>

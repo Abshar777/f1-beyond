@@ -5,6 +5,17 @@ import { useEffect, useRef } from "react";
 type OdometerProps = {
   value: number;
   className?: string;
+  /**
+   * Odometer digit format, parsed by /^\(?([^)]*)\)?(?:(.)(d+))?$/.
+   *
+   * The leading group is greedy, so a decimal place only registers when the
+   * repeating part is parenthesised: "(d).d" gives one decimal, "(,ddd).dd"
+   * gives thousands separators plus two. Writing it as "d.d" looks right and
+   * silently parses to precision 0 — 4.9 would render as 5.
+   *
+   * Empty string is treated as "d" (plain integer) by the library.
+   */
+  format?: string;
 };
 
 /**
@@ -16,7 +27,11 @@ type OdometerProps = {
  * node it is given, so it is imported lazily on the client and the span below
  * is left uncontrolled by React after init.
  */
-export default function Odometer({ value, className = "" }: OdometerProps) {
+export default function Odometer({
+  value,
+  className = "",
+  format = "",
+}: OdometerProps) {
   const ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
@@ -45,7 +60,7 @@ export default function Odometer({ value, className = "" }: OdometerProps) {
             observer?.disconnect();
             if (el.dataset.odometerInitialized) return;
             el.dataset.odometerInitialized = "true";
-            new OdometerLib({ el, value: 0, format: "", theme: "default" }).update(
+            new OdometerLib({ el, value: 0, format, theme: "default" }).update(
               value,
             );
           }
@@ -60,7 +75,7 @@ export default function Odometer({ value, className = "" }: OdometerProps) {
       cancelled = true;
       observer?.disconnect();
     };
-  }, [value]);
+  }, [value, format]);
 
   return (
     <span ref={ref} className={className}>

@@ -48,7 +48,13 @@ export default function SectionHeading({
       </Reveal>
       <TextReveal delay={0.08}>
         <h2
-          className={`gold-accents font-mona text-[32px] font-medium leading-[110%] tracking-[-0.03em] sm:text-[36px] lg:text-[40px] xl:text-[48px] [&_em]:font-playfair [&_em]:italic [&_em]:font-normal [&_em]:tracking-[-0.04em] ${
+          // text-balance replaces the hard <br> these titles used to carry.
+          // SplitText rewrites the heading into per-line divs and consumes a
+          // <br> as a baked-in line boundary, so a media query could never undo
+          // one — and the break that read well at 48px orphaned words on a
+          // phone. Balancing lets the browser even the lines at every width, and
+          // SplitText then splits on the already-balanced layout.
+          className={`gold-accents font-mona text-[26px] font-medium leading-[115%] tracking-[-0.03em] text-balance min-[420px]:text-[32px] min-[420px]:leading-[110%] sm:text-[36px] lg:text-[40px] xl:text-[48px] [&_em]:font-playfair [&_em]:italic [&_em]:font-normal [&_em]:tracking-[-0.04em] ${
             dark ? "text-white" : "text-primary"
           }`}
         >

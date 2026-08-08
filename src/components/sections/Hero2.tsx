@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import CoinFallback from "@/components/three/CoinFallback";
+import Odometer from "@/components/ui/Odometer";
 import ThemeButton from "@/components/ui/ThemeButton";
 import Reveal from "@/components/ui/Reveal";
 import TextReveal from "@/components/ui/TextReveal";
@@ -16,10 +17,15 @@ const CoinScene = dynamic(() => import("@/components/three/CoinScene"), {
   loading: () => <CoinFallback pulsing />,
 });
 
+/**
+ * `count` drives the rolling Odometer; `suffix` is the literal that follows it
+ * (a "k+" or a "/5"), kept out of the number so the digits roll on their own.
+ * `format` is only needed where the value has a decimal.
+ */
 const STATS = [
-  { value: "24k+", label: "Traders trained" },
-  { value: "4.9/5", label: "Mentor rating" },
-  { value: "12+", label: "Years in markets" },
+  { count: 24, suffix: "k+", label: "Traders trained" },
+  { count: 4.9, format: "(d).d", suffix: "/5", label: "Mentor rating" },
+  { count: 12, suffix: "+", label: "Years in markets" },
 ];
 
 const FEATURES = ["Live trading sessions", "Lifetime access", "Certification"];
@@ -152,7 +158,8 @@ export default function Hero2() {
               {STATS.map((s) => (
                 <div key={s.label} className="text-center lg:text-left">
                   <div className="font-mona text-[26px] leading-none font-medium tracking-[-0.02em] text-primary xl:text-[32px]">
-                    {s.value}
+                    <Odometer value={s.count} format={s.format} />
+                    {s.suffix}
                   </div>
                   <div className="mt-1.5 font-mona text-[13px] text-text">
                     {s.label}

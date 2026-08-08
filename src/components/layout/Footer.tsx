@@ -7,27 +7,32 @@ import ThemeButton from "@/components/ui/ThemeButton";
 type FooterLink = { label: string; href: string };
 
 const quickLinks: FooterLink[] = [
-  { label: "Markets", href: "#markets" },
-  { label: "Programmes", href: "#programmes" },
-  { label: "Packages", href: "#packages" },
-  { label: "Mentors", href: "#mentors" },
-  { label: "Market Notes", href: "#notes" },
+  { label: "Markets we teach", href: "/#markets" },
+  { label: "Who we are", href: "/#who-we-are" },
+  { label: "Vision & mission", href: "/#vision-mission" },
+  { label: "Packages & pricing", href: "/#packages" },
+  { label: "Contact the desk", href: "/#contact" },
 ];
 
 const popularCategories: FooterLink[] = [
-  { label: "Forex Trading", href: "#markets" },
-  { label: "Crypto Trading", href: "#markets" },
-  { label: "Commodities & Metals", href: "#markets" },
-  { label: "Technical Analysis", href: "#markets" },
-  { label: "Risk Management", href: "#markets" },
+  { label: "Forex trading", href: "/#markets" },
+  { label: "Crypto trading", href: "/#markets" },
+  { label: "Commodities & metals", href: "/#markets" },
+  { label: "Indices & stocks", href: "/#markets" },
+  { label: "Risk management", href: "/#markets" },
 ];
 
+/**
+ * Every entry here resolves somewhere real. "Risk disclosure" is the one
+ * placeholder left in the footer — it needs its own page before launch, and a
+ * trading academy should not ship without one.
+ */
 const supportLinks: FooterLink[] = [
-  { label: "Trader stories", href: "#stories" },
-  { label: "FAQ", href: "#" },
-  { label: "Terms & conditions", href: "#" },
+  { label: "Pip calculator", href: "/pip-calculator" },
+  { label: "Market notes", href: "/blog" },
+  { label: "Trader stories", href: "/#stories" },
+  { label: "FAQ", href: "/#faq" },
   { label: "Risk disclosure", href: "#" },
-  { label: "Privacy policy", href: "#" },
 ];
 
 const socialLinks: FooterLink[] = [
@@ -39,9 +44,9 @@ const socialLinks: FooterLink[] = [
 ];
 
 const widgets: { title: string; links: FooterLink[] }[] = [
-  { title: "Quick Links", links: quickLinks },
-  { title: "Markets We Teach", links: popularCategories },
-  { title: "Company", links: supportLinks },
+  { title: "The Academy", links: quickLinks },
+  { title: "What We Teach", links: popularCategories },
+  { title: "Tools & Notes", links: supportLinks },
   { title: "Follow", links: socialLinks },
 ];
 
@@ -57,7 +62,9 @@ function FooterWidget({ title, links }: { title: string; links: FooterLink[] }) 
             "font-mona text-base leading-[160%] font-normal text-white/80 transition-colors duration-300 hover:text-secondary";
           return (
             <li key={link.label} className="mb-1.5 last:mb-0 xl:mb-3">
-              {link.href === "/" ? (
+              {/* Route links go through <Link> for client navigation;
+                  anchors and placeholders stay plain <a>. */}
+              {link.href.startsWith("/") && !link.href.startsWith("/#") ? (
                 <Link href={link.href} className={linkClassName}>
                   {link.label}
                 </Link>

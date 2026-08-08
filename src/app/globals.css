@@ -195,6 +195,77 @@ body {
   }
 }
 
+/* The WhatsApp disc: brushed green plus the periodic nudge.
+   Both animations are declared in ONE rule on purpose. Splitting them across
+   two classes on the same element (`.wa-surface` + `.fab-nudge`) meant two
+   `animation` shorthands competing in the cascade, and the nudge silently
+   cancelled the sheen — the gradient was there but never drifted. */
+.wa-disc {
+  background-image: linear-gradient(
+    100deg,
+    #0f7a41 0%,
+    #1aa04f 28%,
+    #25d366 50%,
+    #1aa04f 72%,
+    #0f7a41 100%
+  );
+  background-size: 220% auto;
+  animation:
+    gold-shine 4.6s linear infinite,
+    fab-nudge 3.6s ease-in-out infinite;
+}
+
+/* ── Floating "talk to us" CTA ──
+   An occasional nudge, not a permanent vibration: the wiggle occupies only the
+   last quarter of the cycle and the icon rests for the rest, so it catches the
+   eye on a still page without becoming the thing you are trying to ignore. */
+@keyframes fab-nudge {
+  0%,
+  74%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  78% {
+    transform: rotate(-13deg) scale(1.08);
+  }
+  82% {
+    transform: rotate(10deg) scale(1.08);
+  }
+  86% {
+    transform: rotate(-7deg) scale(1.05);
+  }
+  90% {
+    transform: rotate(5deg) scale(1.02);
+  }
+  94% {
+    transform: rotate(-2deg) scale(1);
+  }
+}
+
+/* Expanding gold halo behind the icon — the "someone is waiting" signal. */
+@keyframes fab-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.45;
+  }
+  70%,
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+.fab-ring {
+  animation: fab-ring 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wa-disc,
+  .fab-ring {
+    animation: none;
+  }
+}
+
 /* ── Carousels ── Swiper's default bullets are blue; recolour to the gold
    accent and give the pagination room below the slides. Shared by the
    testimonial carousel and the mobile mentor carousel. */

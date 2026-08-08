@@ -1,5 +1,8 @@
+"use client";
+
 import type { ReactNode, MouseEventHandler } from "react";
 import Link from "next/link";
+import { openContactModal } from "@/lib/contact-modal";
 
 type Variant = "outline" | "secondary" | "dark" | "white";
 
@@ -11,6 +14,12 @@ type ThemeButtonProps = {
   className?: string;
   onClick?: MouseEventHandler;
   type?: "button" | "submit";
+  /**
+   * Follow `href` instead of opening the contact form. Every CTA on the site
+   * routes to the form by default; set this on a button that genuinely needs to
+   * navigate or jump to an anchor.
+   */
+  keepHref?: boolean;
 };
 
 const ARROW_ICON = (
@@ -75,6 +84,7 @@ export default function ThemeButton({
   className = "",
   onClick,
   type = "button",
+  keepHref = false,
 }: ThemeButtonProps) {
   const classes = `group inline-flex w-max items-center justify-between gap-5 rounded-md p-[3px] pl-5 transition-all duration-300 ${VARIANT_CLASSES[variant]} ${VARIANT_GOLD[variant]} ${VARIANT_SHEEN[variant]} ${className}`;
 
@@ -89,11 +99,31 @@ export default function ThemeButton({
     </>
   );
 
-  if (href) {
+  if (href && keepHref) {
     return (
       <Link href={href} className={classes} onClick={onClick}>
         {content}
       </Link>
+    );
+  }
+
+  // An href without `keepHref` becomes a real <button> rather than a link with a
+  // prevented default: it opens a dialog, so that is the correct semantics, and
+  // it means no dead route is left in the markup for middle-click or
+  // open-in-new-tab to find. Several of these pointed at /courses, /courses-v1
+  // and /team, which do not exist on this single-page site.
+  if (href) {
+    return (
+      <button
+        type="button"
+        className={classes}
+        onClick={(event) => {
+          onClick?.(event);
+          openContactModal();
+        }}
+      >
+        {content}
+      </button>
     );
   }
 
