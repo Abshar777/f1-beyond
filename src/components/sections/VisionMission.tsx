@@ -72,7 +72,7 @@ export default function VisionMission() {
           {PANELS.map((panel) => (
             <article
               key={panel.id}
-              className={`relative overflow-hidden rounded-[12px] border p-8 transition-all duration-500 hover:-translate-y-1.5 lg:p-10 ${
+              className={`relative overflow-hidden rounded-[12px] border p-8 transition-[transform,border-color] duration-500 hover:-translate-y-1.5 lg:p-10 ${
                 panel.dark
                   ? "border-secondary/25 bg-primary hover:border-secondary/50"
                   : "border-primary/10 bg-white hover:border-secondary/40"

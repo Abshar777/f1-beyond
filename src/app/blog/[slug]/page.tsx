@@ -3,19 +3,26 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageShell from "@/components/layout/PageShell";
 import Reveal from "@/components/ui/Reveal";
+import Avatar from "@/components/ui/Avatar";
 import ThemeButton from "@/components/ui/ThemeButton";
-import { POSTS, getPost } from "@/lib/posts";
+import { getPostBySlug, listPosts } from "@/lib/blog-repo";
+import { formatPostDate } from "@/lib/posts";
 
 type Params = { params: Promise<{ slug: string }> };
 
-/** Every post is known at build time, so all detail pages prerender. */
-export function generateStaticParams() {
-  return POSTS.map((post) => ({ slug: post.slug }));
+/**
+ * Prerender whatever exists at build time. `dynamicParams` stays at its default
+ * of true, so a note published from the admin afterwards renders on demand
+ * rather than 404ing until the next deploy.
+ */
+export async function generateStaticParams() {
+  const posts = await listPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPostBySlug(slug);
   if (!post) return { title: "Note not found" };
 
   return {
@@ -33,10 +40,12 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
 export default async function PostPage({ params }: Params) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getPostBySlug(slug);
   if (!post) notFound();
 
-  const more = POSTS.filter((item) => item.slug !== post.slug).slice(0, 3);
+  const more = (await listPosts())
+    .filter((item) => item.slug !== post.slug)
+    .slice(0, 3);
 
   return (
     <PageShell>
@@ -89,18 +98,12 @@ export default async function PostPage({ params }: Params) {
               </p>
 
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-primary/10 pt-6">
-                <img
-                  src={post.avatar}
-                  alt=""
-                  width={38}
-                  height={38}
-                  className="h-[38px] w-[38px] shrink-0 rounded-full object-cover"
-                />
+                <Avatar name={post.author} src={post.avatar} size={38} />
                 <span className="font-mona text-[14px] font-medium text-primary">
                   {post.author}
                 </span>
                 <span className="font-mona text-[13px] text-text">
-                  {post.date} · {post.readMinutes} min read
+                  {formatPostDate(post.publishedAt)} · {post.readMinutes} min read
                 </span>
               </div>
             </Reveal>
@@ -217,7 +220,7 @@ export default async function PostPage({ params }: Params) {
                       {item.title}
                     </h3>
                     <span className="mt-auto pt-5 font-mona text-[12.5px] text-text">
-                      {item.date} · {item.readMinutes} min read
+                      {formatPostDate(item.publishedAt)} · {item.readMinutes} min read
                     </span>
                   </div>
                 </Link>

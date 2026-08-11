@@ -68,7 +68,7 @@ export default function Category2() {
                     // was #programmes, which the popular-programmes section
                     // owned; the tiers now carry that content
                     href="#packages"
-                    className="category2__card group flex h-full flex-col items-start gap-2.5 rounded-[10px] border border-border bg-white p-[9px] transition-all duration-300 hover:-translate-y-1 hover:border-secondary/45 hover:shadow-[0_14px_30px_-18px_rgba(212,175,55,0.75)] sm:flex-row sm:items-center"
+                    className="category2__card group flex h-full flex-col items-start gap-2.5 rounded-[10px] border border-border bg-white p-[9px] transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-secondary/45 hover:shadow-[0_14px_30px_-18px_rgba(212,175,55,0.75)] sm:flex-row sm:items-center"
                   >
                     {/* gold on hover — this was bg-primary, which now resolves
                         to zinc-900 and turned the whole tile black */}

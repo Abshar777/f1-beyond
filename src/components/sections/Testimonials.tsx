@@ -194,6 +194,19 @@ export default function Testimonials() {
   /** True while a programmatic scroll plays, so onScroll ignores it. */
   const isAutoRef = useRef(false);
 
+  /**
+   * Distance between two slides.
+   *
+   * Measured from the DOM rather than taken from `cardW`, so the maths cannot
+   * drift from the layout — `offsetWidth` specifically, because
+   * `getBoundingClientRect()` reports the *transformed* box and would return
+   * 543 instead of 560 while the entrance still has scale(0.97) applied.
+   */
+  const measureStep = useCallback(() => {
+    const first = trackRef.current?.querySelector("figure");
+    return (first instanceof HTMLElement ? first.offsetWidth : cardW) + GAP;
+  }, [cardW]);
+
   const step = cardW + GAP;
 
   useEffect(() => {
@@ -223,10 +236,11 @@ export default function Testimonials() {
       const el = scrollRef.current;
       if (!el) return;
 
+      const stride = measureStep();
       isAutoRef.current = true;
       setPosition(target);
       el.scrollTo({
-        left: target * step,
+        left: target * stride,
         behavior: smooth && !prefersReducedMotion() ? "smooth" : "auto",
       });
 
@@ -236,12 +250,12 @@ export default function Testimonials() {
         // the viewport is the same one, so nothing visibly moves.
         if (posRef.current >= TOTAL) {
           setPosition(posRef.current - TOTAL);
-          el.scrollTo({ left: posRef.current * step, behavior: "auto" });
+          el.scrollTo({ left: posRef.current * stride, behavior: "auto" });
         }
         isAutoRef.current = false;
       }, SETTLE_MS);
     },
-    [step, setPosition],
+    [measureStep, setPosition],
   );
 
   const next = useCallback(() => goTo(posRef.current + 1), [goTo]);
@@ -253,10 +267,10 @@ export default function Testimonials() {
     // set first — the same card, the other copy — then walk back into it.
     if (posRef.current <= 0) {
       setPosition(TOTAL);
-      el.scrollTo({ left: TOTAL * step, behavior: "auto" });
+      el.scrollTo({ left: TOTAL * measureStep(), behavior: "auto" });
     }
     goTo(posRef.current - 1);
-  }, [goTo, step, setPosition]);
+  }, [goTo, measureStep, setPosition]);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -299,12 +313,16 @@ export default function Testimonials() {
   // scroller in <Reveal> animated it as a single block, which is what made this
   // look like a default scroll-in rather than a staggered entrance.
   //
-  // `from` with opacity resolves its end value from whatever the card currently
-  // computes to — 1 for the active card, 0.4 for the dimmed ones — so each fades
-  // to its correct resting state instead of all landing opaque. clearProps then
-  // hands opacity back to the Tailwind classes, so the active/inactive dim keeps
-  // working for the rest of the session; without it the inline opacity would win
-  // forever and every card would stay lit.
+  // TRANSFORM ONLY — deliberately no opacity here. The card carries a CSS
+  // `transition` on opacity for the active/dimmed crossfade, so animating
+  // opacity from GSAP as well put two systems on one property: GSAP wrote an
+  // inline value every frame and the 500ms transition then re-interpolated
+  // towards each one, leaving the fade smeared and lagging the timeline, and
+  // `clearProps` triggered one final 500ms drift at the end. Transform is not in
+  // the transition list, so it is GSAP's alone.
+  //
+  // It also removes a failure mode: a ScrollTrigger that never fires now leaves
+  // the cards merely offset rather than permanently invisible.
   useGSAP(
     () => {
       if (!trackRef.current) return;
@@ -312,14 +330,15 @@ export default function Testimonials() {
 
       gsap.from(gsap.utils.toArray<HTMLElement>("figure", trackRef.current), {
         y: 56,
-        opacity: 0,
         scale: 0.97,
         duration: 0.85,
         // `amount` bounds the total spread, so rendering the list twice for the
         // loop does not double how long the entrance takes.
         stagger: { amount: 0.4 },
         ease: SMOOTH,
-        clearProps: "all",
+        // Only what this tween set. "all" would also clear the inline width and
+        // min-height React renders onto the card.
+        clearProps: "transform",
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 88%",
@@ -333,14 +352,14 @@ export default function Testimonials() {
   const handleScroll = useCallback(() => {
     if (isAutoRef.current || !scrollRef.current) return;
     const derived = Math.min(
-      Math.max(Math.round(scrollRef.current.scrollLeft / step), 0),
+      Math.max(Math.round(scrollRef.current.scrollLeft / measureStep()), 0),
       SLIDES.length - 1,
     );
     setPosition(derived);
     // Hand control back to the timer once the reader has settled.
     if (restartRef.current) clearTimeout(restartRef.current);
     restartRef.current = setTimeout(startTimer, 2000);
-  }, [step, startTimer, setPosition]);
+  }, [measureStep, startTimer, setPosition]);
 
   return (
     <section

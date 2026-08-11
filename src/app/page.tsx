@@ -1,6 +1,6 @@
 import Preloader from "@/components/layout/Preloader";
 // import ScrollProgress from "@/components/layout/ScrollProgress"; // replaced by WhatsAppButton
-import WhatsAppButton from "@/components/layout/WhatsAppButton";
+// import WhatsAppButton from "@/components/layout/WhatsAppButton"; // disabled below
 import FreeAccessPopup from "@/components/layout/FreeAccessPopup";
 import ContactModal from "@/components/layout/ContactModal";
 import Header from "@/components/layout/Header";
@@ -43,7 +43,7 @@ export default function Home() {
       <Footer />
       <FreeAccessPopup />
       <ContactModal />
-      <WhatsAppButton />
+      {/* <WhatsAppButton /> */}
     </>
   );
 }

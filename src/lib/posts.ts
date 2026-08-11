@@ -2,24 +2,29 @@
  * Market-notes content, shared by the homepage `Blog2` strip (first three) and
  * the `/blog` index and detail routes.
  *
- * Placeholder editorial written in the desk's voice — replace with real posts
- * before launch. Dates are absolute rather than relative so nothing silently
- * ages, and every slug is stable because the detail route is generated from it.
+ * These are the SEED records. Once `MONGODB_URI` is set the posts come from the
+ * database instead (see `blog-repo.ts`); this array is what gets imported on
+ * first run, and what the public pages fall back to if the database is
+ * unreachable, so the marketing site never renders an empty blog.
  */
 export type Post = {
+  /** Mongo `_id` as a string. Absent on the bundled seed records. */
+  id?: string;
   slug: string;
   category: string;
   title: string;
   excerpt: string;
   image: string;
-  avatar: string;
+  /** Optional. With no photo, an initials avatar is generated from `author`. */
+  avatar?: string;
   author: string;
-  date: string;
+  /** ISO `yyyy-mm-dd`. Formatted for display by `formatPostDate`. */
+  publishedAt: string;
   readMinutes: number;
   body: string[];
 };
 
-export const POSTS: Post[] = [
+export const SEED_POSTS: Post[] = [
   {
     slug: "position-sizing-keeps-traders-solvent",
     category: "Risk",
@@ -29,7 +34,7 @@ export const POSTS: Post[] = [
     image: "/assets/imgs/stock/trading-charts-1.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_1.webp",
     author: "Marcus Reed",
-    date: "May 15, 2026",
+    publishedAt: "2026-05-15",
     readMinutes: 6,
     body: [
       "Ask a struggling trader why they lost the account and you will usually hear something about a strategy that stopped working. Look at the trade log and you will almost always find something duller: three or four positions that were far too large for the balance behind them.",
@@ -47,7 +52,7 @@ export const POSTS: Post[] = [
     image: "/assets/imgs/stock/trading-screens.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_2.webp",
     author: "Olivia Chen",
-    date: "May 25, 2026",
+    publishedAt: "2026-05-25",
     readMinutes: 7,
     body: [
       "Crypto markets do not keep office hours, but their liquidity does. The same support that held cleanly during the London overlap can be cut straight through at three in the morning, on a book a fraction of the depth.",
@@ -65,7 +70,7 @@ export const POSTS: Post[] = [
     image: "/assets/imgs/stock/seminar-stage.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_3.webp",
     author: "Daniel Roberts",
-    date: "Jun 28, 2026",
+    publishedAt: "2026-06-28",
     readMinutes: 5,
     body: [
       "Every trader who has moved a stop knew, at the moment they moved it, that they should not. The rule was not unclear and it had not been forgotten. It was simply less painful to widen the risk than to accept being wrong.",
@@ -83,7 +88,7 @@ export const POSTS: Post[] = [
     image: "/assets/imgs/stock/trading-desk.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_1.webp",
     author: "Marcus Reed",
-    date: "Jul 9, 2026",
+    publishedAt: "2026-07-09",
     readMinutes: 6,
     body: [
       "Most journals are a list of results. That is a scoreboard, not a diagnostic. A profitable month full of rule breaks is a worse sign than a flat month traded exactly to plan, and a results-only log cannot tell the difference.",
@@ -101,7 +106,7 @@ export const POSTS: Post[] = [
     image: "/assets/imgs/stock/trading-laptop.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_2.webp",
     author: "Olivia Chen",
-    date: "Jul 22, 2026",
+    publishedAt: "2026-07-22",
     readMinutes: 5,
     body: [
       "Backtests are run at the price you asked for. Live accounts are filled at the price available. On a strategy taking several trades a day, the difference between those two numbers is often larger than the edge being tested.",
@@ -119,7 +124,7 @@ export const POSTS: Post[] = [
     image: "/assets/imgs/stock/trading-chart-2.jpg",
     avatar: "/assets/imgs/home2/blog/blog-user2_3.webp",
     author: "Daniel Roberts",
-    date: "Aug 4, 2026",
+    publishedAt: "2026-08-04",
     readMinutes: 6,
     body: [
       "To learn: nothing. A demo account teaches candles, order types, sessions and the mechanics of your platform perfectly well, and you should stay on one until your journal shows a process you can repeat.",
@@ -130,6 +135,22 @@ export const POSTS: Post[] = [
   },
 ];
 
-export function getPost(slug: string) {
-  return POSTS.find((post) => post.slug === slug);
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/**
+ * Formats `yyyy-mm-dd` as "May 15, 2026".
+ *
+ * Hand-rolled rather than `toLocaleDateString`, for the same reason the pip
+ * calculator formats its own numbers: this runs on both the server and the
+ * client, and depending on the runtime's ICU data for the first paint invites a
+ * hydration mismatch. Parsed by hand too — `new Date("2026-05-15")` is UTC
+ * midnight, which renders as the 14th for anyone west of Greenwich.
+ */
+export function formatPostDate(iso: string) {
+  const [year, month, day] = iso.split("-").map(Number);
+  if (!year || !month || !day) return iso;
+  return `${MONTHS[month - 1]} ${day}, ${year}`;
 }

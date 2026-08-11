@@ -76,6 +76,23 @@ export default function Header() {
                 className={`absolute inset-0 h-7 w-auto transition-opacity duration-300 xl:h-8 ${
                   isScrolled ? "opacity-0" : "opacity-100"
                 }`}
+                /* Backdrop shadow for the state with nothing behind it: while
+                   unscrolled the bar is transparent over the cream hero, so the
+                   logo has no dark pill to sit on and its edges go soft against
+                   the background.
+
+                   `drop-shadow` rather than `box-shadow` — the logo is a
+                   transparent PNG, so a box shadow would outline the image's
+                   rectangle instead of the artwork. Two layers: a tight one for
+                   the edge and a wide, fainter one for lift.
+
+                   It lives on this variant alone, which is why no extra state is
+                   needed — the scrolled logo sits on the black pill and does not
+                   want a shadow, and this copy is already faded out by then. */
+                style={{
+                  filter:
+                    "drop-shadow(0 1px 2px rgba(9,9,11,0.22)) drop-shadow(0 6px 14px rgba(9,9,11,0.13))",
+                }}
               />
             </Link>
 

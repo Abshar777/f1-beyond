@@ -3,8 +3,10 @@ import Link from "next/link";
 import PageShell from "@/components/layout/PageShell";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
+import Avatar from "@/components/ui/Avatar";
 import ThemeButton from "@/components/ui/ThemeButton";
-import { POSTS } from "@/lib/posts";
+import { listPosts } from "@/lib/blog-repo";
+import { formatPostDate, type Post } from "@/lib/posts";
 
 export const metadata: Metadata = {
   title: "Market notes — trading process, risk and psychology",
@@ -19,21 +21,10 @@ export const metadata: Metadata = {
   },
 };
 
-const [featured, ...rest] = POSTS;
-
-/** Derived from the posts themselves, so a new category never needs registering. */
-const CATEGORIES = [...new Set(POSTS.map((post) => post.category))];
-
-function Meta({ post, dark = false }: { post: (typeof POSTS)[number]; dark?: boolean }) {
+function Meta({ post, dark = false }: { post: Post; dark?: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-      <img
-        src={post.avatar}
-        alt=""
-        width={28}
-        height={28}
-        className="h-7 w-7 shrink-0 rounded-full object-cover"
-      />
+      <Avatar name={post.author} src={post.avatar} size={28} />
       <span
         className={`font-mona text-[13px] font-medium ${dark ? "text-white" : "text-primary"}`}
       >
@@ -42,13 +33,18 @@ function Meta({ post, dark = false }: { post: (typeof POSTS)[number]; dark?: boo
       <span
         className={`font-mona text-[12.5px] ${dark ? "text-white/45" : "text-text"}`}
       >
-        {post.date} · {post.readMinutes} min read
+        {formatPostDate(post.publishedAt)} · {post.readMinutes} min read
       </span>
     </div>
   );
 }
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const posts = await listPosts();
+  const [featured, ...rest] = posts;
+  // Derived from the posts themselves, so a new category never needs registering.
+  const categories = [...new Set(posts.map((post) => post.category))];
+
   return (
     <PageShell>
       {/* ── page header ── */}
@@ -89,7 +85,7 @@ export default function BlogPage() {
                 survives: sizing, execution, process and psychology.
               </p>
               <ul className="flex flex-wrap items-center justify-center gap-2">
-                {CATEGORIES.map((category) => (
+                {categories.map((category) => (
                   <li
                     key={category}
                     className="rounded-full border border-primary/10 bg-white px-3 py-1.5 font-mona text-[12.5px] font-medium text-primary"

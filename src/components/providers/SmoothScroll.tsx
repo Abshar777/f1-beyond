@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { ReactLenis, useLenis } from "lenis/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -22,6 +23,37 @@ gsap.registerPlugin(ScrollTrigger);
  */
 function LenisGsapBridge() {
   const lenis = useLenis();
+  const pathname = usePathname();
+
+  /**
+   * Reset the scroll on navigation.
+   *
+   * Next restores/resets scroll by writing to the real scroll position, but
+   * Lenis owns that value and keeps its own internal target — so after a client
+   * navigation the new route rendered while still scrolled down the old one.
+   * Clicking a post from halfway down /blog dropped you into the middle of the
+   * article.
+   *
+   * `immediate` on purpose: this is a page change, not a scroll gesture, so it
+   * should not animate the whole way back up.
+   *
+   * Anchors are excluded — Lenis handles `/#section` links itself, and forcing
+   * the top here would fight them.
+   */
+  useEffect(() => {
+    if (!lenis) return;
+    if (window.location.hash) return;
+
+    // BOTH sides have to be reset, and that is the whole bug.
+    //
+    // Lenis keeps its own `animatedScroll` value and writes it to the document
+    // every frame. Telling only Lenis leaves the document where it was until the
+    // next tick; moving only the document leaves Lenis's value stale, and its
+    // next frame puts the old position straight back — which is why navigating
+    // into a post from halfway down /blog landed mid-article.
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    lenis.scrollTo(0, { immediate: true, force: true });
+  }, [lenis, pathname]);
 
   useEffect(() => {
     if (!lenis) return;
@@ -47,6 +79,7 @@ function LenisGsapBridge() {
 
 export default function SmoothScroll({ children }: { children: ReactNode }) {
   const [reduced, setReduced] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -58,7 +91,11 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
 
   // Opt out by not mounting Lenis at all — leaving it mounted but unsmoothed
   // would still put it between the user and native scrolling.
-  if (reduced) return <>{children}</>;
+  //
+  // The admin is excluded for the same reason: it is a form-heavy tool, and
+  // smooth scrolling fights the browser's own scroll-into-view when focus moves
+  // between fields or a validation message appears.
+  if (reduced || pathname.startsWith("/admin")) return <>{children}</>;
 
   return (
     <ReactLenis
