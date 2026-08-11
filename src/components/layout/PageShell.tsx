@@ -2,10 +2,13 @@ import type { ReactNode } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import ContactModal from "@/components/layout/ContactModal";
-import WhatsAppButton from "@/components/layout/WhatsAppButton";
 
 /**
  * Chrome for the secondary routes.
+ *
+ * The floating WhatsApp button is not rendered — it is disabled site-wide, the
+ * same as on the homepage. `WhatsAppButton.tsx` is still on disk, so restoring it
+ * is one import and one line in both places.
  *
  * Deliberately not used by the homepage, which composes its own order and adds
  * the `Preloader` and the pricing-offer toast — the preloader is a first-visit
@@ -22,7 +25,6 @@ export default function PageShell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <Footer />
       <ContactModal />
-      <WhatsAppButton />
     </>
   );
 }

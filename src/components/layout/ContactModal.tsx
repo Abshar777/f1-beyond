@@ -10,9 +10,6 @@ import {
   CONTACT_MODAL_REQUEST_EVENT,
 } from "@/lib/contact-modal";
 
-const DISMISS_KEY = "beyondpips:contact-modal-dismissed";
-const AUTO_OPEN_MS = 15_000;
-
 const FIELD_CLASSES =
   "w-full rounded-md border border-primary/12 bg-bg px-3.5 py-2.5 font-mona text-[14.5px] text-primary outline-none transition-colors duration-200 placeholder:text-text/70 focus:border-secondary";
 
@@ -20,7 +17,8 @@ const LABEL_CLASSES =
   "mb-1.5 block font-mona text-[12.5px] font-medium text-text";
 
 /**
- * Contact form in a modal, opening itself 15 seconds after load.
+ * Contact form in a modal. Opens only when something asks it to — every
+ * `ThemeButton` on the site does, via `openContactModal()`.
  *
  * INTEGRATION POINT: `submit` below does not send anywhere. It matches the
  * footer's existing newsletter handler (preventDefault, no backend) and resolves
@@ -29,8 +27,9 @@ const LABEL_CLASSES =
  * site will silently drop every enquiry.
  *
  * Behaviour notes:
- * - Dismissal is remembered for the session, so it opens itself once and never
- *   nags. Reopening on demand still works via CONTACT_MODAL_REQUEST_EVENT.
+ * - No timer and no dismissal memory. Both existed to stop an auto-opening
+ *   dialog from nagging; with the modal only ever opened by a click, remembering
+ *   a dismissal would instead mean the second click did nothing.
  * - Page scroll is parked with `lenis.stop()`. Lenis is not mounted at all under
  *   `prefers-reduced-motion`, so `body { overflow: hidden }` is the fallback for
  *   that case only — applying both unconditionally would shift the layout by the
@@ -50,21 +49,16 @@ export default function ContactModal() {
 
   const lenis = useLenis();
 
-  const close = useCallback(() => {
-    sessionStorage.setItem(DISMISS_KEY, "1");
-    setOpen(false);
-  }, []);
-
-  // ── auto-open, once per session ──
-  useEffect(() => {
-    if (sessionStorage.getItem(DISMISS_KEY)) return;
-    const timer = setTimeout(() => setOpen(true), AUTO_OPEN_MS);
-    return () => clearTimeout(timer);
-  }, []);
+  const close = useCallback(() => setOpen(false), []);
 
   // ── open on request from anywhere on the page ──
   useEffect(() => {
-    const onRequest = () => setOpen(true);
+    const onRequest = () => {
+      // Reset the success panel, or a second enquiry would open straight onto
+      // "Thanks — that's with the desk" with no form to fill in.
+      setSent(false);
+      setOpen(true);
+    };
     window.addEventListener(CONTACT_MODAL_REQUEST_EVENT, onRequest);
     return () => window.removeEventListener(CONTACT_MODAL_REQUEST_EVENT, onRequest);
   }, []);
