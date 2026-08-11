@@ -5,6 +5,7 @@ import { useLenis } from "lenis/react";
 import gsap from "gsap";
 import { Check, X } from "lucide-react";
 import ThemeButton from "@/components/ui/ThemeButton";
+import { sendEnquiry } from "@/lib/enquiry";
 import {
   CONTACT_MODAL_OPEN_EVENT,
   CONTACT_MODAL_REQUEST_EVENT,
@@ -20,11 +21,9 @@ const LABEL_CLASSES =
  * Contact form in a modal. Opens only when something asks it to — every
  * `ThemeButton` on the site does, via `openContactModal()`.
  *
- * INTEGRATION POINT: `submit` below does not send anywhere. It matches the
- * footer's existing newsletter handler (preventDefault, no backend) and resolves
- * straight to the success panel, so the form LOOKS like it worked while nothing
- * leaves the browser. Point it at a real handler before this goes live, or the
- * site will silently drop every enquiry.
+ * Submissions go to the Google Sheet through `sendEnquiry` (see `lib/enquiry.ts`),
+ * which posts to the sheet's Apps Script web app server-side and reports the real
+ * outcome. The success panel appears only on a confirmed write.
  *
  * Behaviour notes:
  * - No timer and no dismissal memory. Both existed to stop an auto-opening
@@ -40,6 +39,8 @@ const LABEL_CLASSES =
 export default function ContactModal() {
   const [open, setOpen] = useState(false);
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);
@@ -57,6 +58,7 @@ export default function ContactModal() {
       // Reset the success panel, or a second enquiry would open straight onto
       // "Thanks — that's with the desk" with no form to fill in.
       setSent(false);
+      setError(null);
       setOpen(true);
     };
     window.addEventListener(CONTACT_MODAL_REQUEST_EVENT, onRequest);
@@ -135,10 +137,28 @@ export default function ContactModal() {
     );
   }, [open, sent]);
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // No backend yet — see the INTEGRATION POINT note above.
-    setSent(true);
+    // Captured before the await: React pools the event, and `currentTarget` is
+    // null by the time the promise resolves.
+    const form = event.currentTarget;
+
+    setBusy(true);
+    setError(null);
+
+    const result = await sendEnquiry(new FormData(form));
+
+    setBusy(false);
+
+    // The success panel is shown only on a confirmed write. Anything else keeps
+    // the form on screen with its values intact, so the visitor can retry
+    // without retyping — and is never told the enquiry arrived when it did not.
+    if (result.ok) {
+      setSent(true);
+      form.reset();
+    } else {
+      setError(result.error);
+    }
   };
 
   if (!open) return null;
@@ -210,6 +230,15 @@ export default function ContactModal() {
               honestly whether the programme fits — including when it does not.
             </p>
 
+            {error && (
+              <p
+                role="alert"
+                className="mb-5 rounded-md border border-red/20 bg-red/[0.06] px-3.5 py-2.5 font-mona text-[13px] leading-[160%] text-red"
+              >
+                {error}
+              </p>
+            )}
+
             <form onSubmit={submit} noValidate={false}>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -262,7 +291,7 @@ export default function ContactModal() {
                   variant="secondary"
                   className="!w-full !justify-between"
                 >
-                  Send to the desk
+                  {busy ? "Sending…" : "Send to the desk"}
                 </ThemeButton>
                 <p className="mt-3 text-center font-mona text-[12px] leading-[160%] text-text">
                   We reply within one trading day. No spam, no cold calls.
