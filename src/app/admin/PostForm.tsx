@@ -257,7 +257,7 @@ export default function PostForm({ post }: { post?: Post }) {
               label="Cover image"
               value={post?.image}
               options={IMAGE_OPTIONS}
-              hint="Paste a direct image link, or pick a bundled one. Shown on the index, the post header and the share card."
+              hint="Upload a file, paste a direct link, or pick a bundled one. Up to 5MB. Shown on the index, the post header and the share card."
             />
           </div>
 
@@ -270,7 +270,7 @@ export default function PostForm({ post }: { post?: Post }) {
               round
               optional
               initialsName={author}
-              hint="Leave the link blank and an avatar is generated from the author's name, on a colour derived from it."
+              hint="Upload a photo, paste a link, or leave it empty — an avatar is then generated from the author's name, on a colour derived from it."
             />
           </div>
 

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Avatar from "@/components/ui/Avatar";
 
 /**
- * Image picker for the post editor: paste a link, or choose one of the images
- * already bundled in `/public`.
+ * Image picker for the post editor. Three ways to set one, all landing on the
+ * same value: upload a file, paste a link, or choose one already bundled in
+ * `/public`. Used for both the cover and the author photo.
  *
  * The value the form submits is just a URL string in a hidden input, so the
  * server action needs no knowledge of where the image lives — a pasted
@@ -50,6 +51,9 @@ export default function ImageField({
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">(
     value ? "loading" : "idle",
   );
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   /**
    * Single entry point for changing the value, so typing and picking from the
@@ -61,7 +65,45 @@ export default function ImageField({
     const trimmed = next.trim();
     setUrl(trimmed);
     setStatus(trimmed ? "loading" : "idle");
+    setUploadError(null);
   };
+
+  /**
+   * Posts to a route handler, not a server action — actions cap the request body
+   * at 1MB and a phone photo is several times that.
+   */
+  async function upload(file: File) {
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const body = new FormData();
+      body.append("file", file);
+
+      const response = await fetch("/api/admin/images", { method: "POST", body });
+      const payload = (await response.json()) as { url?: string; error?: string };
+
+      if (!response.ok || !payload.url) {
+        // 401 is named specifically: the generic message would send someone
+        // hunting for a problem with the file instead of the session.
+        throw new Error(
+          response.status === 401
+            ? "Your session has expired — sign in again and retry."
+            : (payload.error ?? "The upload failed."),
+        );
+      }
+
+      applyUrl(payload.url);
+    } catch (cause) {
+      setUploadError(
+        cause instanceof Error ? cause.message : "The upload failed.",
+      );
+    } finally {
+      setUploading(false);
+      // Cleared so re-picking the same file fires onChange again.
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   const looksAbsolute = /^https?:\/\//i.test(url);
   const looksRelative = url.startsWith("/");
@@ -130,6 +172,29 @@ export default function ImageField({
         />
 
         <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="cursor-pointer rounded border border-primary/15 px-3 py-1.5 font-mona text-[12.5px] font-medium text-primary transition-colors duration-200 hover:border-secondary hover:text-secondary disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {uploading ? "Uploading…" : "Upload"}
+          </button>
+
+          {/* Never submitted — the hidden input above carries the value. `accept`
+              only filters the picker; the server still validates the type, the
+              size and the magic bytes. */}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (file) void upload(file);
+            }}
+          />
+
           <select
             value={options.includes(url) ? url : ""}
             onChange={(event) => {
@@ -155,6 +220,12 @@ export default function ImageField({
             <span className="font-mona text-[12px] text-text/70">Checking…</span>
           )}
         </div>
+
+        {uploadError && (
+          <p role="alert" className="mt-2.5 font-mona text-[12px] leading-[155%] text-red">
+            {uploadError}
+          </p>
+        )}
 
         {malformed && (
           <p role="alert" className="mt-2.5 font-mona text-[12px] leading-[155%] text-red">
