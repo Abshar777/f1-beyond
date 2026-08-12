@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import type { MarketRates } from "@/lib/rates";
 import CoinFallback from "@/components/three/CoinFallback";
 import Odometer from "@/components/ui/Odometer";
 import ThemeButton from "@/components/ui/ThemeButton";
@@ -44,7 +45,12 @@ const HERO_DELAY = 1;
  * logo and dark links while unscrolled; if this section's background ever goes
  * dark again, that needs flipping back or the nav disappears.
  */
-export default function Hero2() {
+export default function Hero2({
+  /** Live metal quotes for the coin badges; forwarded straight to CoinScene. */
+  metals,
+}: {
+  metals?: MarketRates["metals"];
+}) {
   // Gate the 3D cluster on viewport rather than just hiding it with CSS: the
   // canvas is dynamically imported, so not rendering it means phones never
   // download three.js or pay the WebGL/GPU cost at all.
@@ -181,7 +187,7 @@ export default function Hero2() {
                 aria-hidden
                 className="pointer-events-none absolute bottom-[12%] left-1/2 h-[60px] w-[62%] -translate-x-1/2 rounded-[50%] bg-primary/15 blur-[38px]"
               />
-              <CoinScene />
+              <CoinScene metals={metals} />
             </div>
           </div>
           )}

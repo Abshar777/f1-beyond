@@ -54,10 +54,9 @@ export type NavItem = {
 };
 
 export const NAV_LINKS: NavItem[] = [
-  { label: "Markets", href: "/#markets" },
-  { label: "About", href: "/#who-we-are" },
-  { label: "Packages", href: "/#packages" },
-  { label: "Pip Calculator", href: "/pip-calculator" },
+   { label: "About", href: "/#who-we-are" },
   { label: "Market Notes", href: "/blog" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Pricing", href: "/#packages" },
+  { label: "Pip Calculator", href: "/pip-calculator" },
+  // { label: "Contact", href: "/#contact" },
 ];

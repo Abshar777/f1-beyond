@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -8,77 +8,10 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
 import { SMOOTH } from "@/lib/ease";
+import { SEED_TESTIMONIALS, type Testimonial } from "@/lib/testimonials";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
-type Testimonial = {
-  id: string;
-  initial: string;
-  name: string;
-  role: string;
-  quote: string;
-};
-
-const TESTIMONIALS: Testimonial[] = [
-  {
-    id: "emily-e-carter",
-    initial: "E",
-    name: "Emily E. Carter",
-    role: "Forex · 2 years trading",
-    quote:
-      "I could read a candle and nothing else when I started. The risk rules alone changed how I size every trade — I stopped blowing up accounts by month two.",
-  },
-  {
-    id: "eleanor-e-pena",
-    initial: "E",
-    name: "Eleanor E. Pena",
-    role: "Crypto · 1 year trading",
-    quote:
-      "The live sessions are the difference. Watching a mentor talk through an entry in real time, on a real chart, beats any recorded course I have bought.",
-  },
-  {
-    id: "marcus-hale",
-    initial: "M",
-    name: "Marcus Hale",
-    role: "Indices · 8 months trading",
-    quote:
-      "What sold me was being told to stop trading for two weeks and just journal setups. Nobody selling signals tells you that. My win rate went up when I traded less.",
-  },
-  {
-    id: "priya-raghavan",
-    initial: "P",
-    name: "Priya Raghavan",
-    role: "Commodities · 3 years trading",
-    quote:
-      "I came in already profitable and still got value. The position-sizing framework replaced the gut-feel approach I had been getting away with for two years.",
-  },
-  {
-    id: "daniel-okoro",
-    initial: "D",
-    name: "Daniel Okoro",
-    role: "Forex · 1 year trading",
-    quote:
-      "The psychology track is the part I did not think I needed. Turns out my problem was never the strategy — it was moving my stop after I was already wrong.",
-  },
-  {
-    id: "sofia-marchetti",
-    initial: "S",
-    name: "Sofia Marchetti",
-    role: "Crypto & metals · 6 months trading",
-    quote:
-      "I finished with a written plan I actually follow, and a mentor who reviewed it line by line. That review was worth more than the rest of the course combined.",
-  },
-];
-
-/**
- * The list is rendered twice. Advancing past the last real card lands on its
- * duplicate, which is pixel-identical, so rewinding the scroll by one full set
- * at that moment is invisible — that is what makes the loop seamless instead of
- * snapping back to the start.
- */
-const SLIDES = [...TESTIMONIALS, ...TESTIMONIALS];
-
-const TOTAL = TESTIMONIALS.length;
 const GAP = 24;
 const INTERVAL_MS = 4500;
 /** How long a smooth scroll is given to settle before the loop is normalised. */
@@ -177,12 +110,32 @@ const ARROW_CLASSES =
  * in flight, otherwise the smooth scroll's own intermediate positions fight the
  * index it is trying to reach.
  */
-export default function Testimonials() {
+export default function Testimonials({
+  /**
+   * Reviews to show, oldest first. Defaults to the bundled set so the section
+   * still renders if a caller has nothing to give it.
+   */
+  items = SEED_TESTIMONIALS,
+}: {
+  items?: Testimonial[];
+}) {
   const [cardW, setCardW] = useState(560);
   const [activeIdx, setActiveIdx] = useState(0);
   /** Absolute slide position across both copies, mirrored into state so the
    *  rendered cards know which single slide is the live one. */
   const [pos, setPos] = useState(0);
+
+  const total = items.length;
+  /**
+   * The list rendered twice, so scrolling past the last card lands on a copy of
+   * the first rather than a wall. The position is rewound by one whole set once
+   * the smooth scroll settles, at which point the card under the viewport is the
+   * same one — that is what makes the loop seamless instead of snapping back.
+   *
+   * Memoised on `items`: this feeds the GSAP entrance and the scroll maths, and a
+   * fresh array every render would make both look like the data had changed.
+   */
+  const slides = useMemo(() => [...items, ...items], [items]);
 
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -225,11 +178,14 @@ export default function Testimonials() {
     });
   }, [step]);
 
-  const setPosition = useCallback((next: number) => {
-    posRef.current = next;
-    setPos(next);
-    setActiveIdx(((next % TOTAL) + TOTAL) % TOTAL);
-  }, []);
+  const setPosition = useCallback(
+    (next: number) => {
+      posRef.current = next;
+      setPos(next);
+      setActiveIdx(((next % total) + total) % total);
+    },
+    [total],
+  );
 
   const goTo = useCallback(
     (target: number, smooth = true) => {
@@ -248,14 +204,14 @@ export default function Testimonials() {
       settleRef.current = setTimeout(() => {
         // Walked into the duplicate half — rewind a whole set. The card under
         // the viewport is the same one, so nothing visibly moves.
-        if (posRef.current >= TOTAL) {
-          setPosition(posRef.current - TOTAL);
+        if (posRef.current >= total) {
+          setPosition(posRef.current - total);
           el.scrollTo({ left: posRef.current * stride, behavior: "auto" });
         }
         isAutoRef.current = false;
       }, SETTLE_MS);
     },
-    [measureStep, setPosition],
+    [measureStep, setPosition, total],
   );
 
   const next = useCallback(() => goTo(posRef.current + 1), [goTo]);
@@ -266,11 +222,11 @@ export default function Testimonials() {
     // At the very start there is nothing to the left, so hop forward one whole
     // set first — the same card, the other copy — then walk back into it.
     if (posRef.current <= 0) {
-      setPosition(TOTAL);
-      el.scrollTo({ left: TOTAL * measureStep(), behavior: "auto" });
+      setPosition(total);
+      el.scrollTo({ left: total * measureStep(), behavior: "auto" });
     }
     goTo(posRef.current - 1);
-  }, [goTo, measureStep, setPosition]);
+  }, [goTo, measureStep, setPosition, total]);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -353,13 +309,22 @@ export default function Testimonials() {
     if (isAutoRef.current || !scrollRef.current) return;
     const derived = Math.min(
       Math.max(Math.round(scrollRef.current.scrollLeft / measureStep()), 0),
-      SLIDES.length - 1,
+      slides.length - 1,
     );
     setPosition(derived);
     // Hand control back to the timer once the reader has settled.
     if (restartRef.current) clearTimeout(restartRef.current);
     restartRef.current = setTimeout(startTimer, 2000);
-  }, [measureStep, startTimer, setPosition]);
+  }, [measureStep, startTimer, setPosition, slides.length]);
+
+  // Every index here is taken modulo `total`, which with an empty list is a
+  // division by zero yielding NaN — so bail before the maths rather than render
+  // a broken carousel. Placed after the hooks, never before: an early return
+  // above them would change the hook order between renders.
+  //
+  // Not reachable through `listTestimonials`, which substitutes the bundled set
+  // for an empty collection; this guards a caller passing `[]` directly.
+  if (total === 0) return null;
 
   return (
     <section
@@ -412,11 +377,11 @@ export default function Testimonials() {
             gap: `${GAP}px`,
           }}
         >
-          {SLIDES.map((item, i) => (
+          {slides.map((item, i) => (
             <figure
               // The second copy repeats every id, so the index has to be part of
               // the key.
-              key={`${item.id}-${i}`}
+              key={`${item.slug}-${i}`}
               className={`flex flex-shrink-0 flex-col rounded-[12px] border bg-white p-8 transition-[opacity,border-color,box-shadow] duration-500 max-md:p-6 ${
                 i === pos
                   ? "border-secondary/40 opacity-100 shadow-[0_24px_60px_-45px_rgba(9,9,11,0.5)]"
@@ -428,7 +393,7 @@ export default function Testimonials() {
               }}
             >
               <div className="flex items-center justify-between gap-3">
-                <Stars />
+                <Stars count={item.rating} />
                 <GoogleMark />
               </div>
 
@@ -437,12 +402,24 @@ export default function Testimonials() {
               </blockquote>
 
               <figcaption className="flex items-center gap-3 border-t border-primary/10 pt-5">
-                <span
-                  aria-hidden
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary/15 font-mona text-[14px] font-medium text-secondary uppercase"
-                >
-                  {item.initial}
-                </span>
+                {/* Photo when there is one, the letter badge when there is not
+                    — most reviewers never send a headshot, so the badge is the
+                    common case rather than a placeholder for a missing image. */}
+                {item.photo ? (
+                  <img
+                    src={item.photo}
+                    alt=""
+                    loading="lazy"
+                    className="h-9 w-9 shrink-0 rounded-full bg-primary/[0.04] object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary/15 font-mona text-[14px] font-medium text-secondary uppercase"
+                  >
+                    {item.initial}
+                  </span>
+                )}
                 <span className="block">
                   <span className="block font-mona text-[13.5px] leading-tight font-medium text-primary">
                     {item.name}
@@ -466,15 +443,15 @@ export default function Testimonials() {
               className="flex min-w-0 flex-1 items-center gap-[6px] sm:flex-none"
               style={{ width: `${cardW}px` }}
             >
-              {TESTIMONIALS.map((item, i) => (
+              {items.map((item, i) => (
                 <button
-                  key={item.id}
+                  key={item.slug}
                   type="button"
                   onClick={() => {
                     goTo(i);
                     startTimer();
                   }}
-                  aria-label={`Show review ${i + 1} of ${TOTAL}, ${item.name}`}
+                  aria-label={`Show review ${i + 1} of ${total}, ${item.name}`}
                   aria-current={i === activeIdx}
                   className={`h-[3px] flex-1 cursor-pointer rounded-full transition-colors duration-300 ${
                     i === activeIdx ? "bg-secondary" : "bg-primary/15"
@@ -484,7 +461,7 @@ export default function Testimonials() {
             </div>
 
             <span className="font-mona text-[13px] tabular-nums whitespace-nowrap text-text">
-              {activeIdx + 1} / {TOTAL}
+              {activeIdx + 1} / {total}
             </span>
 
             <div className="ml-auto flex items-center gap-2">

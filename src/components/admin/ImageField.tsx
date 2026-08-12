@@ -28,6 +28,8 @@ export default function ImageField({
   round = false,
   optional = false,
   initialsName,
+  fallbackPreview,
+  onChange,
 }: {
   name: string;
   label: string;
@@ -44,6 +46,22 @@ export default function ImageField({
    * Passed live from the author field, so the preview updates as it is typed.
    */
   initialsName?: string;
+  /**
+   * What blank looks like, when the caller's own fallback is not an initials
+   * `Avatar`. Takes precedence over `initialsName`.
+   *
+   * Exists because the testimonial card falls back to a gold letter badge rather
+   * than a colour-hashed avatar, and a preview that showed the wrong one would be
+   * worse than no preview — the whole point of this box is to show what will
+   * actually render.
+   */
+  fallbackPreview?: React.ReactNode;
+  /**
+   * Fires with the new value whenever it changes, by any of the three routes.
+   * For callers that render their own preview of the whole record and need to
+   * mirror the image into it.
+   */
+  onChange?: (url: string) => void;
 }) {
   // An optional field starts genuinely empty. Defaulting it to the first
   // bundled image would silently attach a stock photo nobody chose.
@@ -66,6 +84,7 @@ export default function ImageField({
     setUrl(trimmed);
     setStatus(trimmed ? "loading" : "idle");
     setUploadError(null);
+    onChange?.(trimmed);
   };
 
   /**
@@ -134,7 +153,16 @@ export default function ImageField({
         ) : null}
 
         {(status === "error" || malformed || !url) &&
-          (optional && !url && initialsName?.trim() ? (
+          (optional && !url && fallbackPreview ? (
+            <div className="mb-3 flex items-center gap-2.5">
+              {fallbackPreview}
+              <span className="font-mona text-[12px] leading-[150%] text-text">
+                Shown when
+                <br />
+                no photo is set
+              </span>
+            </div>
+          ) : optional && !url && initialsName?.trim() ? (
             // Exactly what the blog will render, not an approximation of it.
             <div className="mb-3 flex items-center gap-2.5">
               <Avatar name={initialsName} size={56} />

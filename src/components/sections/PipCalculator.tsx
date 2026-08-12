@@ -2,6 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { Calculator, Info } from "lucide-react";
+// Types only — erased at compile time, so rates.ts's `server-only` guard never
+// reaches this client bundle.
+import type { MarketRates, QuoteCurrency } from "@/lib/rates";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
 
@@ -18,33 +21,45 @@ import Reveal from "@/components/ui/Reveal";
  * lot, USD-base pairs divide by their own rate, and the JPY crosses all share
  * USD/JPY because JPY is the quote on every one of them.
  *
- * The rates are indicative teaching figures, not a live feed — the section says
- * so on the page, because sizing a real position off a hardcoded number is
- * exactly the habit an academy should not be teaching.
+ * `quoteCurrency` names the rate each pair needs rather than baking a number in.
+ * USD-quoted rows have no entry because their conversion is exactly 1 — no feed
+ * required, and no feed outage can break them.
  */
-const USD_JPY = 157.2;
-
 type Instrument = {
   pair: string;
   pipSize: number;
-  quoteToUsd: number;
+  /** Which live rate converts this pair's pip into USD. Absent ⇒ already USD. */
+  quoteCurrency?: QuoteCurrency;
   /** Contract size. Spot metals trade in ounces, not 100k currency units. */
   unitsPerLot: number;
   unitLabel: string;
 };
 
 const INSTRUMENTS: Instrument[] = [
-  { pair: "EUR/USD", pipSize: 0.0001, quoteToUsd: 1, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "GBP/USD", pipSize: 0.0001, quoteToUsd: 1, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "AUD/USD", pipSize: 0.0001, quoteToUsd: 1, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "USD/JPY", pipSize: 0.01, quoteToUsd: 1 / USD_JPY, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "USD/CHF", pipSize: 0.0001, quoteToUsd: 1 / 0.885, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "USD/CAD", pipSize: 0.0001, quoteToUsd: 1 / 1.368, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "EUR/JPY", pipSize: 0.01, quoteToUsd: 1 / USD_JPY, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "GBP/JPY", pipSize: 0.01, quoteToUsd: 1 / USD_JPY, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "EUR/GBP", pipSize: 0.0001, quoteToUsd: 1.274, unitsPerLot: 100_000, unitLabel: "units" },
-  { pair: "XAU/USD", pipSize: 0.01, quoteToUsd: 1, unitsPerLot: 100, unitLabel: "oz" },
+  { pair: "EUR/USD", pipSize: 0.0001, unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "GBP/USD", pipSize: 0.0001, unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "AUD/USD", pipSize: 0.0001, unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "USD/JPY", pipSize: 0.01, quoteCurrency: "JPY", unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "USD/CHF", pipSize: 0.0001, quoteCurrency: "CHF", unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "USD/CAD", pipSize: 0.0001, quoteCurrency: "CAD", unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "EUR/JPY", pipSize: 0.01, quoteCurrency: "JPY", unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "GBP/JPY", pipSize: 0.01, quoteCurrency: "JPY", unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "EUR/GBP", pipSize: 0.0001, quoteCurrency: "GBP", unitsPerLot: 100_000, unitLabel: "units" },
+  { pair: "XAU/USD", pipSize: 0.01, unitsPerLot: 100, unitLabel: "oz" },
 ];
+
+/**
+ * The rates the site shipped with, used when no live set is handed in.
+ *
+ * Mirrors `FALLBACK` in `lib/rates.ts` so this component renders sane numbers
+ * even if mounted with no props at all.
+ */
+const FALLBACK_QUOTE_TO_USD: Record<QuoteCurrency, number> = {
+  JPY: 1 / 158.951,
+  CHF: 1 / 0.8095,
+  CAD: 1 / 1.3939,
+  GBP: 1 / 0.7404,
+};
 
 /**
  * Formatted by hand rather than with `toLocaleString`: this is a client
@@ -56,6 +71,24 @@ function group(value: string) {
   const [whole, fraction] = value.split(".");
   const spaced = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   return fraction ? `${spaced}.${fraction}` : spaced;
+}
+
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+/**
+ * "11 Aug 14:00 UTC" from an ISO timestamp.
+ *
+ * Read in UTC and assembled by hand for the same reason as `group` above, only
+ * more so: a locale-formatted local time differs between the server's timezone
+ * and the visitor's, which is a guaranteed hydration mismatch rather than a
+ * possible one. Naming the zone also makes the figure unambiguous for a reader
+ * in Dubai looking at a rate priced in London.
+ */
+function formatAsOf(iso: string) {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return "recently";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${at.getUTCDate()} ${MONTHS[at.getUTCMonth()]} ${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} UTC`;
 }
 
 const money = (n: number) => `$${group(n.toFixed(2))}`;
@@ -132,19 +165,34 @@ export default function PipCalculator({
    * tools" eyebrows and two near-identical headings, which read as a bug.
    */
   heading = true,
+  /**
+   * Live USD conversions from the server. Omitted or partial, the shipped
+   * defaults stand in — the calculator must always produce a number.
+   */
+  quoteToUsd,
+  /** When the live set was priced, for the note under the pair selector. */
+  asOf = null,
 }: {
   heading?: boolean;
+  quoteToUsd?: MarketRates["quoteToUsd"];
+  asOf?: string | null;
 } = {}) {
   const [pair, setPair] = useState(INSTRUMENTS[0].pair);
   const [balance, setBalance] = useState("10000");
   const [risk, setRisk] = useState("1");
   const [stop, setStop] = useState("25");
 
+  const rates = quoteToUsd ?? FALLBACK_QUOTE_TO_USD;
+
   const result = useMemo(() => {
     const instrument =
       INSTRUMENTS.find((i) => i.pair === pair) ?? INSTRUMENTS[0];
+    // USD-quoted pairs convert at exactly 1, so they need no rate at all.
+    const conversion = instrument.quoteCurrency
+      ? rates[instrument.quoteCurrency]
+      : 1;
     const pipValuePerLot =
-      instrument.pipSize * instrument.unitsPerLot * instrument.quoteToUsd;
+      instrument.pipSize * instrument.unitsPerLot * conversion;
 
     const balanceValue = parse(balance);
     const riskValue = parse(risk);
@@ -174,7 +222,7 @@ export default function PipCalculator({
       units: lots * instrument.unitsPerLot,
       pipValueAtSize: lots * pipValuePerLot,
     };
-  }, [pair, balance, risk, stop]);
+  }, [pair, balance, risk, stop, rates]);
 
   const { instrument, pipValuePerLot } = result;
 
@@ -311,9 +359,17 @@ export default function PipCalculator({
                 One pip is {instrument.pipSize} on {instrument.pair}, and a
                 standard lot is{" "}
                 {group(instrument.unitsPerLot.toString())}{" "}
-                {instrument.unitLabel}. Rates here are indicative teaching
-                figures — always size off your broker&apos;s live quote before
-                you place the order.
+                {instrument.unitLabel}.{" "}
+                {asOf ? (
+                  <>
+                    Conversion rates updated{" "}
+                    <time dateTime={asOf}>{formatAsOf(asOf)}</time>.
+                  </>
+                ) : (
+                  <>Conversion rates are indicative reference figures.</>
+                )}{" "}
+                Always size off your broker&apos;s live quote before you place
+                the order — their spread and fill are what you actually get.
               </p>
             </div>
 

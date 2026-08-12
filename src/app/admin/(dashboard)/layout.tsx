@@ -34,6 +34,24 @@ export default function DashboardLayout({
             </span>
           </div>
 
+          {/* Section switcher. Plain links rather than an active-state nav: that
+              would need the pathname, which would make this whole layout a
+              client component for the sake of one underline. */}
+          <nav className="flex items-center gap-1 max-sm:order-3 max-sm:w-full">
+            {[
+              { href: "/admin", label: "Market notes" },
+              { href: "/admin/testimonials", label: "Testimonials" },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="rounded-md px-3 py-1.5 font-mona text-[13.5px] font-medium text-text transition-colors duration-200 hover:bg-primary/[0.05] hover:text-primary"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+
           <div className="flex items-center gap-4">
             <Link
               href="/blog"

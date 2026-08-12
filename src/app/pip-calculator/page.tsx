@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PageShell from "@/components/layout/PageShell";
 import PipCalculator from "@/components/sections/PipCalculator";
+import { getMarketRates } from "@/lib/rates";
 import SectionHeading from "@/components/ui/SectionHeading";
 import Reveal from "@/components/ui/Reveal";
 import ThemeButton from "@/components/ui/ThemeButton";
@@ -41,7 +42,9 @@ const STEPS = [
   },
 ];
 
-export default function PipCalculatorPage() {
+export default async function PipCalculatorPage() {
+  const rates = await getMarketRates();
+
   return (
     <PageShell>
       {/* ── page header ── */}
@@ -92,7 +95,11 @@ export default function PipCalculatorPage() {
 
       {/* The homepage section reused — one calculator, one behaviour. Its own
           heading is suppressed because the block above already introduced it. */}
-      <PipCalculator heading={false} />
+      <PipCalculator
+        heading={false}
+        quoteToUsd={rates.quoteToUsd}
+        asOf={rates.asOf}
+      />
 
       {/* ── how it works ── */}
       <section className="bg-bg pb-20 lg:pb-[90px]">

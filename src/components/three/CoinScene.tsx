@@ -4,19 +4,25 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment, Float, Html, Lightformer, useTexture } from "@react-three/drei";
 import type { Group } from "three";
+// `import type` only — erased at compile time, so the `server-only` guard in
+// rates.ts is never pulled into this client bundle.
+import type { MarketRates, MetalQuote } from "@/lib/rates";
 import CoinFallback from "./CoinFallback";
 
 /**
  * The three spot metals actually quoted on forex venues. Each disc is given
  * its real metal colour rather than all-gold, so the cluster reads as a
  * commodities desk instead of a pile of tokens.
+ *
+ * Appearance only. The quote each badge shows arrives as a prop from the server
+ * (see `lib/rates.ts`) — hardcoding a price here is what this used to do, and a
+ * frozen number on a trading site ages into a straightforward untruth.
  */
 const METALS = [
   {
+    symbol: "XAU",
     pair: "XAU/USD",
     name: "Gold",
-    price: "2,391.40",
-    change: "+0.74%",
     body: "#d4af37",
     rim: "#e6c14e",
     boss: "#f0d484",
@@ -24,10 +30,9 @@ const METALS = [
     roughness: 0.19,
   },
   {
+    symbol: "XAG",
     pair: "XAG/USD",
     name: "Silver",
-    price: "28.14",
-    change: "+1.12%",
     body: "#c9ced6",
     rim: "#e4e8ee",
     boss: "#f2f5f8",
@@ -35,10 +40,9 @@ const METALS = [
     roughness: 0.16,
   },
   {
+    symbol: "XPT",
     pair: "XPT/USD",
     name: "Platinum",
-    price: "962.80",
-    change: "-0.35%",
     body: "#b9bec4",
     rim: "#d7dbe0",
     boss: "#eceef1",
@@ -46,6 +50,18 @@ const METALS = [
     roughness: 0.13,
   },
 ] as const;
+
+/**
+ * Signed percentage, at the precision a desk would quote it.
+ *
+ * Hand-formatted rather than via `toLocaleString`: these values are rendered
+ * inside a client component that still runs through SSR, and leaning on the
+ * runtime's ICU data for the first paint is how you earn a hydration mismatch
+ * between Node and the browser.
+ */
+function formatChange(pct: number) {
+  return `${pct < 0 ? "-" : "+"}${Math.abs(pct).toFixed(2)}%`;
+}
 
 /**
  * Interactive gold coin cluster.
@@ -77,6 +93,7 @@ type Metal = (typeof METALS)[number];
 
 function Coin({
   metal,
+  quote,
   position,
   scale = 1,
   spin = 0.35,
@@ -84,6 +101,8 @@ function Coin({
   labelOffset,
 }: {
   metal: Metal;
+  /** Live quote for this metal. Undefined leaves the badge showing the pair. */
+  quote?: MetalQuote;
   position: [number, number, number];
   scale?: number;
   spin?: number;
@@ -139,13 +158,17 @@ function Coin({
             <span className="font-mona text-[10px] font-medium text-primary">
               {metal.pair}
             </span>
-            <span
-              className={`font-mona text-[10px] font-medium ${
-                metal.change.startsWith("-") ? "text-text" : "text-secondary"
-              }`}
-            >
-              {metal.change}
-            </span>
+            {/* Omitted rather than zeroed when there is no previous close to
+                compare against — "+0.00%" would assert a flat market. */}
+            {quote?.changePct != null && (
+              <span
+                className={`font-mona text-[10px] font-medium ${
+                  quote.changePct < 0 ? "text-text" : "text-secondary"
+                }`}
+              >
+                {formatChange(quote.changePct)}
+              </span>
+            )}
           </div>
         </Html>
 
@@ -257,7 +280,7 @@ function Coin({
  * would fight page scrolling. These handlers never call preventDefault, so
  * touch-dragging the hero still scrolls the page.
  */
-function Cluster() {
+function Cluster({ metals }: { metals?: MarketRates["metals"] }) {
   const group = useRef<Group>(null);
   const drag = useRef({ active: false, lastX: 0, velocity: 0 });
   // Showcase pass that runs once, when the preloader clears.
@@ -333,9 +356,16 @@ function Cluster() {
   return (
     <>
       <group ref={group}>
-        <Coin metal={METALS[0]} position={[0.1, 0.2, 0]} scale={1.5} spin={0.3} />
+        <Coin
+          metal={METALS[0]}
+          quote={metals?.[METALS[0].symbol]}
+          position={[0.1, 0.2, 0]}
+          scale={1.5}
+          spin={0.3}
+        />
         <Coin
           metal={METALS[1]}
+          quote={metals?.[METALS[1].symbol]}
           position={[-1.75, -1.05, -0.7]}
           scale={0.78}
           spin={-0.4}
@@ -343,6 +373,7 @@ function Cluster() {
         />
         <Coin
           metal={METALS[2]}
+          quote={metals?.[METALS[2].symbol]}
           position={[1.85, -1.2, -0.4]}
           scale={0.6}
           spin={0.48}
@@ -384,7 +415,16 @@ function Cluster() {
   );
 }
 
-export default function CoinScene() {
+export default function CoinScene({
+  /**
+   * Live metal quotes, fetched on the server and handed down through Hero2.
+   * Optional so the scene still renders — badges showing just the pair — if a
+   * caller has no rates to give it.
+   */
+  metals,
+}: {
+  metals?: MarketRates["metals"];
+}) {
   // Lazy initialisers rather than an effect: this component is only ever
   // mounted client-side (`ssr: false`), so `document`/`navigator` exist on the
   // first render — and probing here avoids the extra render pass that setting
@@ -463,7 +503,7 @@ export default function CoinScene() {
       </Environment>
 
       <Suspense fallback={null}>
-        <Cluster />
+        <Cluster metals={metals} />
       </Suspense>
     </Canvas>
   );
