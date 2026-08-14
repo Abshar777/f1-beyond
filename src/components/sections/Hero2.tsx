@@ -108,7 +108,7 @@ export default function Hero2({
 
             <TextReveal delay={HERO_DELAY } className="mb-6">
               <h1 className="gold-accents gold-accents-deep font-mona text-[38px] leading-[1.04] font-medium tracking-[-0.03em] text-primary max-md:text-center md:text-[46px] lg:text-[52px] xl:text-[62px]">
-                Trade crypto &amp; markets with real{" "}
+                Trade forex, crypto &amp; markets with real{" "}
                 <em className="font-playfair font-normal italic">
                   strategy
                 </em>
