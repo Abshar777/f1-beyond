@@ -38,17 +38,36 @@ type StreamConfig = {
   note?: string;
 };
 
+/** The floor applied to everything that is not gold. */
+const MAJOR_FLOOR = 500;
+/** The lower floor the gold books get — see the note on the gold entries. */
+const GOLD_FLOOR = 50;
+
 const STREAMS: StreamConfig[] = [
-  { symbol: "btcusdt", label: "BTC/USDT", priceDp: 2, qtyDp: 5, minNotional: 500 },
-  { symbol: "ethusdt", label: "ETH/USDT", priceDp: 2, qtyDp: 4, minNotional: 500 },
+  { symbol: "btcusdt", label: "BTC/USDT", priceDp: 2, qtyDp: 5, minNotional: MAJOR_FLOOR },
+  { symbol: "ethusdt", label: "ETH/USDT", priceDp: 2, qtyDp: 4, minNotional: MAJOR_FLOOR },
+  // Two gold-backed tokens rather than one. They are separate instruments with
+  // their own books and their own prices — XAUT and PAXG were 0.3% apart when
+  // this was written — so showing both is a fairer picture of tokenised gold
+  // than picking a winner, and it roughly doubles how often gold prints.
+  //
+  // Both carry a $50 floor instead of the majors' $500: gold prints a fraction
+  // as often as BTC here, and at $500 it would scroll past almost never, which
+  // defeats the point of including it.
   {
     symbol: "xautusdt",
     label: "XAUT/USDT",
     priceDp: 2,
     qtyDp: 4,
-    // Gold is a far thinner book here than BTC; at a $500 floor it would almost
-    // never appear, and the point of including it is that it does.
-    minNotional: 50,
+    minNotional: GOLD_FLOOR,
+    note: "tokenised gold",
+  },
+  {
+    symbol: "paxgusdt",
+    label: "PAXG/USDT",
+    priceDp: 2,
+    qtyDp: 4,
+    minNotional: GOLD_FLOOR,
     note: "tokenised gold",
   },
 ];
@@ -384,7 +403,7 @@ export default function LiveTape() {
         />
 
         {/* ── per-instrument strip ── */}
-        <Reveal stagger className="mb-5 grid gap-4 sm:grid-cols-3">
+        <Reveal stagger className="mb-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STREAMS.map((config) => {
             const trade = latest[config.label];
             return (
@@ -443,7 +462,8 @@ export default function LiveTape() {
                 )}
               </div>
               <span className="font-mona text-[11.5px] text-text/80">
-                Executed trades over ${STREAMS[0].minNotional} · exchange feed
+                Prints over ${MAJOR_FLOOR} · gold over ${GOLD_FLOOR} · exchange
+                feed
               </span>
             </div>
 

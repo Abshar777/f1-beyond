@@ -20,7 +20,7 @@ type RevealProps = {
 /**
  * Scroll reveal — the single entrance animation used across every section.
  *
- * Four things run together, which is what separates this from a fade-up:
+ * Three things run together, which is what separates this from a fade-up:
  *
  * 1. A full mask wipe. `clipPath` opens from a collapsed top edge to the whole
  *    box, so content is uncovered rather than faded in. The previous version
@@ -31,16 +31,12 @@ type RevealProps = {
  * 3. A scale settle from slightly *over* size down to 1 — the direction matters:
  *    easing outward to rest reads as the element coming to a stop, where the old
  *    zoom-in from 0.985 read as it being pushed.
- * 4. Blur to sharp, desktop only. This is the expensive part (a filter on a
- *    large block forces its own paint), so it is gated on viewport rather than
- *    shipped to phones.
- *
  * All of it on one long `expo`-flavoured curve (see SMOOTH) so elements
  * decelerate for most of their travel instead of stopping dead.
  *
  * `clearProps` matters more than it looks: without it the tween leaves an inline
- * transform and filter behind, and any CSS hover transform on the same element
- * silently stops working, because an inline style beats a utility class.
+ * transform behind, and any CSS hover transform on the same element silently
+ * stops working, because an inline style beats a utility class.
  *
  * Deliberately no ScrollSmoother — smooth scrolling comes from Lenis, which is
  * synced to GSAP's ticker in SmoothScroll, so ScrollTrigger and Lenis share one
@@ -64,8 +60,6 @@ export default function Reveal({
         ? gsap.utils.toArray<HTMLElement>(ref.current.children)
         : ref.current;
 
-      const soften = window.matchMedia("(min-width: 1024px)").matches;
-
       gsap.fromTo(
         targets,
         {
@@ -73,14 +67,12 @@ export default function Reveal({
           opacity: 0,
           scale: 1.03,
           clipPath: "inset(0% 0% 100% 0%)",
-          ...(soften ? { filter: "blur(9px)" } : {}),
         },
         {
           y: 0,
           opacity: 1,
           scale: 1,
           clipPath: "inset(0% 0% 0% 0%)",
-          ...(soften ? { filter: "blur(0px)" } : {}),
           duration: 0.9,
           delay,
           ease: SMOOTH,
