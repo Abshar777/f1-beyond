@@ -393,3 +393,44 @@ body {
   transform: translateY(0);
   transition: transform 2s;
 }
+
+/* ── Live trade tape ── the status dot breathes while the socket is open, and
+   each new row lands with a brief gold wash so a print is noticeable without
+   the whole list animating on every tick. */
+@keyframes tape-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+.animate-tape-pulse {
+  animation: tape-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes tape-row-in {
+  from {
+    background-color: rgba(212, 175, 55, 0.13);
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+.tape-row {
+  animation: tape-row-in 900ms ease-out both;
+}
+
+/* A tape is exactly the kind of restless motion this setting is asking to be
+   spared. The rows still update; they just stop announcing themselves. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-tape-pulse,
+  .tape-row {
+    animation: none;
+  }
+}
