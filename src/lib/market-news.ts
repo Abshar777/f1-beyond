@@ -41,7 +41,8 @@ export type NewsItem = {
   /** ISO. */
   publishedAt: string;
   source: string;
-  image?: string;
+  /** Always set — a feed image when the publisher supplies one, else a local. */
+  image: string;
 };
 
 export type Impact = "High" | "Medium" | "Low";
@@ -89,6 +90,58 @@ const FEEDS: Feed[] = [
 ];
 
 const CALENDAR_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json";
+
+/**
+ * Local artwork for headlines that arrive without a picture.
+ *
+ * Needed because coverage is all-or-nothing per publisher rather than patchy:
+ * FXStreet attaches an image to all 30 of its items and CoinDesk to none of its
+ * 25, so a card either always has one or never does. The panel looked broken
+ * whenever CoinDesk filled the slots.
+ *
+ * Served from `/assets/imgs/news/`, which holds copies resized to 480px — the
+ * originals are up to 2.1MB each for a 96x72 thumbnail, so pointing at them
+ * would have shipped ~6.7MB of images to render postage stamps. The full-size
+ * files are left in place for any other use.
+ *
+ * `match` is tried in order and the first hit wins, so a headline about silver
+ * gets the silver picture rather than a generic one. Anything unmatched falls
+ * through to the generic pool, picked by a hash of the story so the same
+ * headline always keeps the same image — a random pick would reshuffle every
+ * revalidate and make the page flicker between builds.
+ */
+const NEWS_ART = "/assets/imgs/news";
+
+const ART_MATCHES: { match: RegExp; file: string }[] = [
+  { match: /\bsilver\b|\bxag\b/i, file: "Silver4.jpg" },
+  { match: /\baud\b|aussie|australian dollar/i, file: "AUDUSD-bullish-animal.png" },
+  { match: /\beur\b|euro\b|\becb\b/i, file: "EURUSD-bullish-line.png" },
+  { match: /\bpeso\b|\bmxn\b|banxico/i, file: "mexican-peso-bull-03.jpg" },
+  { match: /\bcnh\b|\bcny\b|yuan|renminbi|china|chinese/i, file: "usd-cnh-01.jpg" },
+  // Last of the specific ones: "dollar" appears in half the forex headlines
+  // ever written, so it must not out-rank a more precise match above.
+  { match: /dollar index|\bdxy\b|greenback|\busd\b|dollar/i, file: "DollarIndex.png" },
+];
+
+const ART_GENERIC = ["Global-Concept_2.jpg", "discover-51.png"];
+
+/** FNV-1a, so the same story resolves to the same picture on every render. */
+function hash(value: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < value.length; i += 1) {
+    h ^= value.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+function artworkFor(title: string, key: string): string {
+  const hit = ART_MATCHES.find((entry) => entry.match.test(title));
+  const file = hit
+    ? hit.file
+    : ART_GENERIC[hash(key) % ART_GENERIC.length];
+  return `${NEWS_ART}/${file}`;
+}
 
 const parser = new XMLParser({
   ignoreAttributes: false,
@@ -166,16 +219,22 @@ async function fetchFeed(feed: Feed): Promise<NewsItem[]> {
         if (!title || !url || Number.isNaN(published.getTime())) return null;
 
         const enclosure = item.enclosure as Record<string, string> | undefined;
-        const image = enclosure?.["@_url"];
+        const supplied = enclosure?.["@_url"];
+        const id = text(item.guid) || url;
 
         return {
-          id: text(item.guid) || url,
+          id,
           title,
           summary: trim(plain(text(item.description))),
           url,
           publishedAt: published.toISOString(),
           source: feed.name,
-          image: image && /^https?:\/\//.test(image) ? image : undefined,
+          // The publisher's own image is always preferred — it belongs to the
+          // story. Local artwork is the fallback, never an override.
+          image:
+            supplied && /^https?:\/\//.test(supplied)
+              ? supplied
+              : artworkFor(title, id),
         };
       })
       .filter((item): item is NewsItem => item !== null);

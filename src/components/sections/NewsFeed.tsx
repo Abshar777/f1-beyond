@@ -79,17 +79,16 @@ export default function NewsFeed({ items }: { items: NewsItem[] }) {
                 rel="noopener noreferrer"
                 className="group flex gap-4 rounded-[12px] border border-primary/10 bg-white p-5 transition-all duration-500 hover:-translate-y-1 hover:border-secondary/40"
               >
-                {item.image && (
-                  // Decorative: the headline beside it already carries the
-                  // meaning, so an alt describing the stock photo would only add
-                  // noise for a screen reader.
-                  <img
-                    src={item.image}
-                    alt=""
-                    loading="lazy"
-                    className="hidden h-[72px] w-[96px] shrink-0 rounded-md bg-primary/[0.04] object-cover sm:block"
-                  />
-                )}
+                {/* Decorative: the headline beside it already carries the
+                    meaning, so an alt describing the picture would only add
+                    noise for a screen reader. No longer conditional — every item
+                    is guaranteed an image, the publisher's or a local one. */}
+                <img
+                  src={item.image}
+                  alt=""
+                  loading="lazy"
+                  className="hidden h-[72px] w-[96px] shrink-0 rounded-md bg-primary/[0.04] object-cover sm:block"
+                />
                 <span className="block min-w-0">
                   <span className="mb-1.5 flex items-center gap-2">
                     <span className="font-mona text-[11px] font-semibold tracking-[0.06em] text-secondary uppercase">
