@@ -41,12 +41,16 @@ const forum = Forum({
 });
 
 /**
- * Update this to the real production origin before launch. `metadataBase` is
- * what turns the relative OG/icon paths into the absolute URLs that social
- * scrapers require — without it Next warns and falls back to localhost, and the
- * share card silently resolves to nothing.
+ * The production origin. `metadataBase` is what turns the relative OG/icon paths
+ * into the absolute URLs that social scrapers require — without it Next warns
+ * and falls back to localhost, and the share card silently resolves to nothing.
+ *
+ * `www` deliberately, and no trailing slash. The apex 308-redirects to `www`, so
+ * naming the apex here would put a redirect in front of every canonical and OG
+ * URL — which some scrapers do not follow, and which costs a round trip for the
+ * ones that do.
  */
-const SITE_URL = "https://www.beyondpipsacademy.com/;
+const SITE_URL = "https://www.beyondpipsacademy.com";
 
 const DESCRIPTION =
   "Learn to trade forex, crypto, indices and metals with active traders. Live mentor sessions, real chart reading and the risk framework that keeps an account alive. Every package is free while the desk is opening up.";
