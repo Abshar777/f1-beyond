@@ -46,7 +46,7 @@ const forum = Forum({
  * scrapers require — without it Next warns and falls back to localhost, and the
  * share card silently resolves to nothing.
  */
-const SITE_URL = "https://beyondpips.com";
+const SITE_URL = "https://www.beyondpipsacademy.com/;
 
 const DESCRIPTION =
   "Learn to trade forex, crypto, indices and metals with active traders. Live mentor sessions, real chart reading and the risk framework that keeps an account alive. Every package is free while the desk is opening up.";
