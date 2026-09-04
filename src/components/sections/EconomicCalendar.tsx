@@ -9,7 +9,9 @@ import type { CalendarEvent } from "@/lib/market-news";
  * bundle. Times are printed in UTC rather than the visitor's zone: this renders
  * on the server and is cached, so a local-time string would be the server's idea
  * of local, and naming the zone makes the figure unambiguous for a reader in
- * Dubai looking at a release scheduled in London.
+ * Dubai looking at a release scheduled in London. IST is shown alongside UTC as
+ * a fixed +5:30 conversion, since it's a large share of the audience and has no
+ * DST to worry about.
  */
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -17,6 +19,9 @@ const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
+
+/** IST has no DST and sits a fixed +5:30 ahead of UTC year-round. */
+const IST_OFFSET_MINUTES = 5 * 60 + 30;
 
 /** "Mon 17 Aug" / "08:30", both in UTC, assembled by hand to avoid ICU. */
 function parts(iso: string) {
@@ -27,6 +32,13 @@ function parts(iso: string) {
     time: `${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())}`,
     dayKey: at.toISOString().slice(0, 10),
   };
+}
+
+/** Same wall-clock math as parts(), shifted to IST — a fixed offset, so no ICU needed here either. */
+function istTime(iso: string) {
+  const shifted = new Date(new Date(iso).getTime() + IST_OFFSET_MINUTES * 60_000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(shifted.getUTCHours())}:${pad(shifted.getUTCMinutes())}`;
 }
 
 /** High is the only one that gets the gold; everything else recedes. */
@@ -72,7 +84,7 @@ export default function EconomicCalendar({ events }: { events: CalendarEvent[] }
                   Next {events.length} releases
                 </span>
                 <span className="font-mona text-[11.5px] text-text/80">
-                  High &amp; medium impact · times in UTC
+                  High &amp; medium impact · times in UTC / IST
                 </span>
               </div>
 
@@ -112,7 +124,10 @@ export default function EconomicCalendar({ events }: { events: CalendarEvent[] }
                         >
                           <td className="px-5 py-3.5 whitespace-nowrap sm:px-6">
                             <span className="block font-mona text-[12.5px] font-medium tabular-nums text-primary">
-                              {when.time}
+                              {when.time} <span className="font-normal text-text/50">UTC</span>
+                            </span>
+                            <span className="mt-0.5 block font-mona text-[11px] tabular-nums text-secondary">
+                              {istTime(event.at)} <span className="text-text/50">IST</span>
                             </span>
                             <span className="mt-0.5 block font-mona text-[11px] text-text">
                               {newDay ? when.day : ""}
