@@ -17,7 +17,7 @@ type StatItem = {
  * wrap into a 2-col grid on small phones and stack centered on tablets.
  */
 const STATS: StatItem[] = [
-  { title: "18k+", count: 18, suffix: "k+", text: "Traders mentored", Icon: Users },
+  { title: "15+", count: 15, suffix: "+", text: "Skilled trainers", Icon: Users },
   // Not quantities — "Live Sessions" and "24/5" have nothing to roll, so they
   // stay as plain text rather than being forced through a counter.
   { title: "Live Sessions", text: "Every trading week", Icon: Radio },

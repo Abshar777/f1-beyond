@@ -13,24 +13,23 @@ import VisionMission from "@/components/sections/VisionMission";
 // import Video2 from "@/components/sections/Video2"; // section disabled below
 import Packages from "@/components/sections/Packages";
 // import Brand2 from "@/components/sections/Brand2"; // partners section disabled
-import PipCalculator from "@/components/sections/PipCalculator";
-import Testimonials from "@/components/sections/Testimonials";
+// import PipCalculator from "@/components/sections/PipCalculator";
+// import Testimonials from "@/components/sections/Testimonials";
 import App1 from "@/components/sections/App1";
 import Faq from "@/components/sections/Faq";
 import Blog2 from "@/components/sections/Blog2";
 import { getMarketRates } from "@/lib/rates";
-import { listTestimonials } from "@/lib/testimonial-repo";
+// import { listTestimonials } from "@/lib/testimonial-repo";
 // import Instagram from "@/components/sections/Instagram"; // section disabled below
 
 export default async function Home() {
-  // One fetch, two consumers. Next's data cache keys this by URL, so the hero
-  // badges and the calculator below share a single upstream call — and so does
-  // every other visitor inside the revalidate window.
-  // Independent of each other, so they overlap rather than queue.
-  const [rates, testimonials] = await Promise.all([
-    getMarketRates(),
-    listTestimonials(),
-  ]);
+  // Next's data cache keys this by URL, so every visitor inside the revalidate
+  // window shares a single upstream call.
+  //
+  // Only the rates are fetched now that Testimonials is commented out below —
+  // leaving `listTestimonials()` here after its import was commented out is what
+  // took the homepage down with a ReferenceError. Restore both together.
+  const rates = await getMarketRates();
 
   return (
     <>
@@ -44,8 +43,8 @@ export default async function Home() {
         <WhoWeAre />
         {/* <Video2 /> */}
         <Packages />
-        <PipCalculator quoteToUsd={rates.quoteToUsd} asOf={rates.asOf} />
-        <Testimonials items={testimonials} />
+        {/* <PipCalculator quoteToUsd={rates.quoteToUsd} asOf={rates.asOf} /> */}
+        {/* <Testimonials items={testimonials} /> */}
         <Faq />
         <App1 />
         <Blog2 />

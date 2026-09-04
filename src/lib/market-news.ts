@@ -123,7 +123,26 @@ const ART_MATCHES: { match: RegExp; file: string }[] = [
   { match: /dollar index|\bdxy\b|greenback|\busd\b|dollar/i, file: "DollarIndex.png" },
 ];
 
-const ART_GENERIC = ["Global-Concept_2.jpg", "discover-51.png"];
+/**
+ * The pool for anything the rules above do not match — crypto headlines, mostly,
+ * since none of this artwork is crypto-themed.
+ *
+ * Every file, not just the two neutral ones. These are decorative thumbnails, so
+ * a chart or a bull beside a Bitcoin headline reads fine, whereas a pool of two
+ * meant a page of twelve crypto stories alternating between the same pair of
+ * pictures — which is exactly what production shows while the FXStreet feed is
+ * returning nothing.
+ */
+const ART_GENERIC = [
+  "Global-Concept_2.jpg",
+  "discover-51.png",
+  "Silver4.jpg",
+  "AUDUSD-bullish-animal.png",
+  "EURUSD-bullish-line.png",
+  "DollarIndex.png",
+  "mexican-peso-bull-03.jpg",
+  "usd-cnh-01.jpg",
+];
 
 /** FNV-1a, so the same story resolves to the same picture on every render. */
 function hash(value: string): number {

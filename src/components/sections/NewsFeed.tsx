@@ -19,8 +19,11 @@ const MONTHS = [
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
+// India has no DST, so a fixed +5:30 offset is exact — no ICU/timezone data needed.
+const IST_OFFSET_MS = (5 * 60 + 30) * 60 * 1000;
+
 /**
- * "08:30 UTC" for today, "14 Aug 08:30 UTC" otherwise.
+ * "08:30 IST" for today, "14 Aug 08:30 IST" otherwise.
  *
  * Absolute rather than relative ("2h ago"): this is a server component behind a
  * 15-minute cache, so a relative string would be baked in at render and drift
@@ -30,13 +33,16 @@ function stamp(iso: string, now: Date) {
   const at = new Date(iso);
   if (Number.isNaN(at.getTime())) return "";
 
+  const atIST = new Date(at.getTime() + IST_OFFSET_MS);
+  const nowIST = new Date(now.getTime() + IST_OFFSET_MS);
+
   const pad = (n: number) => String(n).padStart(2, "0");
-  const time = `${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} UTC`;
-  const sameDay = at.toISOString().slice(0, 10) === now.toISOString().slice(0, 10);
+  const time = `${pad(atIST.getUTCHours())}:${pad(atIST.getUTCMinutes())} IST`;
+  const sameDay = atIST.toISOString().slice(0, 10) === nowIST.toISOString().slice(0, 10);
 
   return sameDay
     ? time
-    : `${at.getUTCDate()} ${MONTHS[at.getUTCMonth()]} ${time}`;
+    : `${atIST.getUTCDate()} ${MONTHS[atIST.getUTCMonth()]} ${time}`;
 }
 
 export default function NewsFeed({ items }: { items: NewsItem[] }) {
