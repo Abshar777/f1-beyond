@@ -42,7 +42,7 @@ export default async function Home() {
         <VisionMission />
         <WhoWeAre />
         {/* <Video2 /> */}
-        <Packages />
+        {/* <Packages /> */}
         {/* <PipCalculator quoteToUsd={rates.quoteToUsd} asOf={rates.asOf} /> */}
         {/* <Testimonials items={testimonials} /> */}
         <Faq />
